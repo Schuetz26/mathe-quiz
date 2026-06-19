@@ -1,0 +1,64 @@
+
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stammfunktionen 6.2 Schüleredition</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14/lib/browser/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+body{font-family:Segoe UI;background:linear-gradient(135deg,#312e81,#0ea5e9,#16a34a);margin:0;padding:20px}
+.card{max-width:1200px;margin:auto;background:#fff;border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.task{font-size:2rem;text-align:center;padding:20px;background:#f8fafc;border-radius:16px}
+button{padding:10px 16px;border:0;border-radius:12px;background:#4338ca;color:white}
+input,select{padding:10px;border-radius:10px}
+.progress{display:flex;gap:4px;flex-wrap:wrap}.seg{width:14px;height:14px;background:#ddd}.ok{background:#16a34a}.bad{background:#dc2626}
+.good{color:#16a34a}.badtxt{color:#dc2626}
+</style></head><body><div class="card" id="app"></div>
+<script>
+const app=document.getElementById("app"),HS="sf62"; let S={}; const stats={};
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[Math.floor(Math.random()*a.length)];
+function norm(s){return (s||"").toLowerCase().replace(/\s+/g,'').replace(/,/g,'.').replace(/(\d)x/g,'$1*x').replace(/sinx/g,'sin(x)').replace(/cosx/g,'cos(x)').replace(/ln\(/g,'log(')}
+function checkEq(inp,target){
+ try{
+  const d=math.derivative(norm(inp),'x');
+  for(let x of [-3,-2,-1,-0.5,0.5,1,2,3]){
+   let a=math.evaluate(d.toString(),{x});
+   let b=math.evaluate(target,{x});
+   if(Math.abs(a-b)>1e-3*Math.max(1,Math.abs(b))) return false;
+  }
+  return true;
+ }catch(e){return false}
+}
+function track(t,o){stats[t]=stats[t]||{ok:0,bad:0};stats[t][o?'ok':'bad']++}
+function poly(d){let parts=[],sol=[];for(let i=0;i<d+1;i++){let a=R(1,9),n=R(d,2*d+3);parts.push(`${a}*x^${n}`);sol.push(`(${a}/${n+1})*x^${n+1}`)}return{cat:"Polynome",f:parts.join('+'),sol:sol.join('+')}}
+function trig1(){return C([{cat:"Trigonometrie",f:"sin(x)",sol:"-cos(x)"},{cat:"Trigonometrie",f:"cos(x)",sol:"sin(x)"},{cat:"Trigonometrie",f:"6*cos(6*x)",sol:"sin(6*x)"}])}
+function expo(){let a=R(2,8);return{cat:"Exponential",f:`${a}*exp(x)`,sol:`${a}*exp(x)`}}
+function ln(){let a=R(2,7);return{cat:"Logarithmus",bonus:true,points:15,f:`${2*a}*x/(${a}*x^2+1)`,sol:`log(${a}*x^2+1)`}}
+function wurzel(){let a=R(2,5);return{cat:"Wurzel",f:`${a}*sqrt(x)`,sol:`(${2*a}/3)*x^(3/2)`}}
+function kette(){let a=R(2,5);return{cat:"Kettenregel",bonus:true,points:15,f:`${2*a}*x*exp(${a}*x^2)`,sol:`exp(${a}*x^2)`}}
+function levelGen(l){
+ if(l===1) return C([()=>poly(1),trig1,wurzel])();
+ if(l===2) return C([()=>poly(2),trig1,expo,ln])();
+ return C([()=>poly(4),expo,ln,kette])();
+}
+function hs(){return JSON.parse(localStorage.getItem(HS)||"[]")}
+function save(){let h=hs();h.push({n:S.name,p:S.p});h.sort((a,b)=>b.p-a.p);localStorage.setItem(HS,JSON.stringify(h.slice(0,10)))}
+function menu(){app.innerHTML=`<h1>🎓 Stammfunktionen 6.2</h1><p>+10 richtig, -5 falsch, Bonus +15</p><input id=n placeholder=Name> <select id=q><option>15</option><option>25</option><option>50</option></select><br><br><button onclick='start(1)'>Level 1 Grundlagen</button> <button onclick='start(2)'>Level 2 Fortgeschritten</button> <button onclick='start(3)'>Level 3 LK</button><h3>Highscore</h3>${hs().map(x=>x.n+': '+x.p).join('<br>')}`}
+function start(l){S={level:l,max:+q.value,n:0,p:0,res:[],hist:[],name:n.value||'Gast'};next()}
+function bar(){return '<div class=progress>'+Array.from({length:S.max},(_,i)=>`<div class="seg ${S.res[i]===true?'ok':S.res[i]===false?'bad':''}"></div>`).join('')+'</div>'}
+function next(){
+ if(S.n>=S.max){save();app.innerHTML=`<h1>🏁 Level beendet</h1><h2>${S.p} Punkte</h2><h3>Aufgabenhistorie</h3>${S.hist.join('<br>')}<br><br><button onclick='menu()'>Menü</button>`;return}
+ S.task=levelGen(S.level);S.n++;
+ app.innerHTML=`<h2>${S.p} Punkte | Aufgabe ${S.n}/${S.max}</h2>${bar()}<div class='task'>\[F(x)=\int ${S.task.f}\,dx\]</div><p>Gib eine Stammfunktion an:</p><input id=a style='width:70%'> <button onclick='check()'>Prüfen</button>`;
+ MathJax.typesetPromise();
+}
+function check(){
+ let ok=checkEq(a.value,S.task.f);
+ track(S.task.cat,ok);
+ S.res[S.n-1]=ok;
+ S.p+=ok?(S.task.points||10):-5;
+ S.hist.unshift((ok?'✅':'❌')+' '+S.task.cat+' → '+S.task.f);
+ app.innerHTML+=`<p class='${ok?'good':'badtxt'}'>${ok?'Richtig':'Falsch'}<br>Musterlösung: \(${S.task.sol}+C\)</p><button onclick='next()'>Weiter</button>`;
+ MathJax.typesetPromise();
+}
+menu();
+</script></body></html>

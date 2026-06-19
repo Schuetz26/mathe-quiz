@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stammfunktionen Quiz Deluxe 6.0</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14/lib/browser/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+body{font-family:Segoe UI;background:linear-gradient(135deg,#312e81,#0891b2,#16a34a);margin:0;padding:18px}
+.card{max-width:1200px;margin:auto;background:white;padding:24px;border-radius:22px}
+button{padding:10px 18px;border:0;border-radius:12px;background:#4338ca;color:#fff}
+input,select{padding:10px}.task{font-size:2rem;text-align:center}.progress{display:flex;gap:4px;flex-wrap:wrap}.seg{width:14px;height:14px;background:#ddd;border-radius:3px}.ok{background:#16a34a}.bad{background:#dc2626}
+.hist{max-height:180px;overflow:auto;background:#f7f7f7;padding:10px}
+</style></head><body><div class=card id=app></div>
+<script>
+const app=document.getElementById('app');
+let state={level:1,max:15,n:0,pts:0,res:[],hist:[],name:'',task:null};
+const HS='sf6_highscore';
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const C=a=>a[Math.floor(Math.random()*a.length)];
+function norm(s){return s.toLowerCase().replace(/,/g,'.').replace(/\s+/g,'').replace(/(\d)x/g,'$1*x').replace(/sinx/g,'sin(x)').replace(/cosx/g,'cos(x)').replace(/ln\(/g,'log(').replace(/e\^x/g,'exp(x)')}
+function eq(user,target){for(let x of [-3,-2,-1,-.5,.5,1,2,3]){try{let d=math.evaluate(math.derivative(norm(user),'x').toString(),{x});let f=math.evaluate(target,{x});if(!Number.isFinite(d)||Math.abs(d-f)>1e-6)return false;}catch{return false}}return true}
+function poly(){let a=R(1,9),n=C([-4,-3,-2,-1,0,1,2,3,4,5,6]); if(n==-1)n=2; return {f:`${a}*x^${n}`,sol:`(${a}/(${n+1}))*x^${n+1}`}}
+function trig(){let t=C([{f:'sin(x)',s:'-cos(x)'},{f:'cos(x)',s:'sin(x)'},{f:'2*cos(2*x)',s:'sin(2*x)'}]);return{f:t.f,sol:t.s}}
+function exp(){let a=R(2,7);return{f:`${a}*exp(${a}*x)`,sol:`exp(${a}*x)`}}
+function ln(){let a=R(1,6);return{f:`${a}/(${a}*x+1)`,sol:`log(${a}*x+1)`}}
+function subst(){let a=R(2,5);return{bonus:true,f:`${2*a}*x*exp(${a}*x^2)`,sol:`exp(${a}*x^2)`}}
+function mix(){let a=R(1,5),b=R(1,5);return{f:`${a}*x^2+${b}*sin(x)+exp(x)`,sol:`(${a}/3)*x^3-${b}*cos(x)+exp(x)`}}
+function gen(){if(Math.random()<0.1)return subst();return C([poly,trig,exp,ln,mix])()}
+function save(){let hs=JSON.parse(localStorage.getItem(HS)||'[]');hs.push({n:state.name,p:state.pts,d:new Date().toLocaleString()});hs.sort((a,b)=>b.p-a.p);localStorage.setItem(HS,JSON.stringify(hs.slice(0,10)))}
+function high(){return (JSON.parse(localStorage.getItem(HS)||'[]')).map(x=>`<li>${x.n}: ${x.p}</li>`).join('')}
+function menu(){app.innerHTML=`<h1>Stammfunktionen 6.0</h1>Name <input id=n><br><br><button onclick=start(1)>⭐</button><button onclick=start(2)>⭐⭐</button><button onclick=start(3)>⭐⭐⭐</button><select id=c><option>15</option><option>25</option><option>50</option></select><h3>Highscore</h3><ol>${high()}</ol>`}
+function start(l){state={...state,level:l,max:+c.value,n:0,pts:0,res:[],hist:[],name:n.value||'Gast'};next()}
+function prog(){return '<div class=progress>'+Array.from({length:state.max},(_,i)=>`<div class="seg ${state.res[i]===true?'ok':state.res[i]===false?'bad':''}"></div>`).join('')+'</div>'}
+function next(){if(state.n>=state.max){save();menu();return;} state.task=gen(); state.n++; app.innerHTML=`<h2>${state.name} · ${state.pts} Punkte · ${state.n}/${state.max}</h2>${prog()}<div class=task>${state.task.bonus?'⭐ Knobelaufgabe<br>':''}\\(f(x)=${state.task.f}\\)</div><div>F(x)=<input id=a style='width:60%'><button onclick=check()>Prüfen</button></div><div class=hist>${state.hist.join('<br>')}</div>`;MathJax.typesetPromise()}
+function check(){let ok=eq(a.value,state.task.f);state.res[state.n-1]=ok;state.pts+=ok?10:-3;state.hist.unshift((ok?'✅':'❌')+' '+a.value+' → '+state.task.sol);app.innerHTML+=`<h3>${ok?'Richtig':'Falsch'}</h3><p>Beispiel: ${state.task.sol}+C</p><button onclick=next()>Weiter</button>`}
+menu();
+</script></body></html>

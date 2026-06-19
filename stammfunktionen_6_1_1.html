@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stammfunktionen 6.1</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14/lib/browser/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>body{font-family:Segoe UI;margin:0;padding:18px;background:linear-gradient(135deg,#312e81,#0ea5e9,#16a34a)}.card{max-width:1250px;margin:auto;background:#fff;padding:24px;border-radius:20px}button{padding:10px 16px;border:0;border-radius:10px;background:#4338ca;color:#fff}input,select{padding:10px}.task{font-size:1.9rem;text-align:center}.progress{display:flex;gap:3px;flex-wrap:wrap}.seg{width:12px;height:12px;background:#ddd}.ok{background:#16a34a}.bad{background:#dc2626}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}</style></head><body><div class=card id=app></div><script>
+const app=document.getElementById('app'); const HS='sf61';
+let S={};
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[Math.floor(Math.random()*a.length)];
+const stats={};
+function track(t,ok){stats[t]=(stats[t]||{ok:0,bad:0});stats[t][ok?'ok':'bad']++;}
+function norm(s){return s.toLowerCase().replace(/\s+/g,'').replace(/,/g,'.').replace(/(\d)x/g,'$1*x').replace(/sinx/g,'sin(x)').replace(/cosx/g,'cos(x)').replace(/e\^/g,'exp').replace(/ln\(/g,'log(')}
+function checkEq(inp,target){for(let x of [-2,-1,-.5,.5,1,2,3]){try{let d=math.evaluate(math.derivative(norm(inp),'x').toString(),{x});let f=math.evaluate(target,{x});if(Math.abs(d-f)>1e-5)return false}catch{return false}}return true}
+function poly(diff){let deg=diff===1?R(1,4):diff===2?R(3,7):R(5,10);let parts=[];let sol=[];for(let i=0;i<R(1,diff+1);i++){let a=R(1,9),n=R(0,deg);parts.push(`${a}*x^${n}`);sol.push(`(${a}/${n+1})*x^${n+1}`)}return{cat:'Polynom',f:parts.join('+'),sol:sol.join('+')}}
+function chain(){let gens=[()=>{let a=R(2,6);return{cat:'Knobel',bonus:true,f:`${2*a}*x*exp(${a}*x^2)`,sol:`exp(${a}*x^2)`}},()=>{let a=R(2,6);return{cat:'Knobel',bonus:true,f:`${2*a}*x*cos(${a}*x^2)`,sol:`sin(${a}*x^2)`}},()=>{let a=R(2,7);return{cat:'Knobel',bonus:true,f:`${2*a}*x/(${a}*x^2+1)`,sol:`log(${a}*x^2+1)`}},()=>{let a=R(2,5);return{cat:'Knobel',bonus:true,f:`${3*a}*x^2*(x^3+1)^${a}`,sol:`(x^3+1)^${a+1}/${a+1}`}},()=>{let a=R(2,5);return{cat:'Knobel',bonus:true,f:`${2*a}*x/sqrt(${a}*x^2+1)`,sol:`sqrt(${a}*x^2+1)`}}];return C(gens)()}
+function trig(){return C([{cat:'Trig',f:'sin(x)',sol:'-cos(x)'},{cat:'Trig',f:'cos(x)',sol:'sin(x)'},{cat:'Trig',f:'4*cos(4*x)',sol:'sin(4*x)'}])}
+function exp(){let a=R(2,8);return{cat:'Expo',f:`${a}*exp(x)+${R(1,4)}*x^2`,sol:`${a}*exp(x)+${R(1,4)/3}*x^3`}}
+function levelGen(l){if(Math.random()<0.1)return chain(); if(l==1)return C([()=>poly(1),trig])(); if(l==2)return C([()=>poly(2),()=>poly(2),trig,exp,chain])(); if(Math.random()<0.08)return {cat:'Doppelintegration',bonus:true,points:15,f:`${R(2,5)}*x^4+${R(2,5)}*x^2`,sol:`integriere zweimal – Stammfunktion der Stammfunktion`}; return C([()=>poly(3),()=>poly(3),trig,exp,,f:`${R(2,5)}*x^4+${R(2,5)}*x^2`,sol:`${R(2,5)/20}*x^5+${R(2,5)/12}*x^3`}),chain])();}
+function hs(){return JSON.parse(localStorage.getItem(HS)||'[]')}
+function save(){let h=hs();h.push({n:S.name,p:S.p});h.sort((a,b)=>b.p-a.p);localStorage.setItem(HS,JSON.stringify(h.slice(0,10)))}
+function menu(){app.innerHTML=`<h1>Stammfunktionen 6.1</h1><input id=n placeholder=Name><select id=q><option>15</option><option>25</option><option>50</option></select><button onclick='start(1)'>⭐</button><button onclick='start(2)'>⭐⭐</button><button onclick='start(3)'>⭐⭐⭐</button><h3>Highscore</h3>${hs().map(x=>x.n+': '+x.p).join('<br>')}`}
+function start(l){S={level:l,max:+q.value,n:0,p:0,res:[],hist:[],name:n.value||'Gast'};next()}
+function bar(){return '<div class=progress>'+Array.from({length:S.max},(_,i)=>`<div class="seg ${S.res[i]===true?'ok':S.res[i]===false?'bad':''}"></div>`).join('')+'</div>'}
+function next(){if(S.n>=S.max){save();let rep=Object.entries(stats).map(([k,v])=>`${k}: ${v.ok}✓ / ${v.bad}✗`).join('<br>');app.innerHTML=`<h1>Fertig</h1><h2>${S.p} Punkte</h2><h3>Fehleranalyse</h3>${rep}<button onclick=menu()>Menü</button>`;return}S.task=levelGen(S.level);S.n++;app.innerHTML=`<div class=grid><div><h2>${S.p} Punkte · ${S.n}/${S.max}</h2>${bar()}<div class=task>${S.task.cat==='Doppelintegration'?'⭐⭐ Doppelintegral-Bonus (15 Punkte)<br>':(S.task.bonus?'⭐ Knobel – nur rückwärts Kettenregel<br>':'')}\(f(x)=${S.task.f}\)</div><input id=a style='width:70%'><button onclick=check()>Prüfen</button><div>${S.hist.join('<br>')}</div></div><div><h3>Statistik</h3>${Object.entries(stats).map(([k,v])=>k+': '+v.ok+'/'+v.bad).join('<br>')}</div></div>`;MathJax.typesetPromise()}
+function check(){let ok=checkEq(a.value,S.task.f);track(S.task.cat,ok);S.res[S.n-1]=ok;S.p+=ok?(S.task.points||10):-3;S.hist.unshift((ok?'✅':'❌')+' '+S.task.cat);app.innerHTML+=`<p>${ok?'Richtig':'Falsch'} – Beispiel: ${S.task.sol}+C</p><button onclick=next()>Weiter</button>`}
+menu();
+</script></body></html>

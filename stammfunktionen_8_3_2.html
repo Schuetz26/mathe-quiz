@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stammfunktionen 8.2</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14/lib/browser/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#312e81,#0891b2,#16a34a);margin:0;padding:20px}
+.wrap{max-width:1100px;margin:auto;background:#fff;border-radius:24px;padding:24px}
+.card{display:inline-block;padding:18px;margin:8px;border-radius:16px;border:1px solid #ddd;cursor:pointer}
+button{background:#4338ca;color:#fff;border:0;padding:10px 16px;border-radius:10px}
+.good{background:#dcfce7;padding:12px;border-radius:12px}
+.bad{background:#fee2e2;padding:12px;border-radius:12px}
+.gold{background:#fef3c7;padding:12px;border-radius:12px}
+.task{font-size:2rem;text-align:center;margin:20px}
+</style>
+</head>
+<body><div class="wrap" id="app"></div>
+<script>
+const app=document.getElementById('app');
+const HS='sf82';
+let S={};
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const C=a=>a[Math.floor(Math.random()*a.length)];
+
+function hs(){return JSON.parse(localStorage.getItem(HS)||'[]')}
+function saveHS(n,p){let h=hs();h.push({n,p});h.sort((a,b)=>b.p-a.p);localStorage.setItem(HS,JSON.stringify(h.slice(0,10)));}
+
+function norm(s){
+return s.toLowerCase().replace(/\s+/g,'').replace(/,/g,'.')
+.replace(/(\d)x/g,'$1*x').replace(/sinx/g,'sin(x)').replace(/cosx/g,'cos(x)')
+.replace(/lnx/g,'log(x)').replace(/e\^x/g,'exp(x)');
+}
+
+function pretty(s){
+ let t=s;
+
+ // exp
+ t=t.replace(/1\*exp\(x\)/g,'e^{x}');
+ t=t.replace(/([0-9]+)\*exp\(x\)/g,'$1e^{x}');
+ t=t.replace(/exp\(x\)/g,'e^{x}');
+
+ // roots
+ t=t.replace(/1\*x\^\(1\/2\)/g,'\\sqrt{x}');
+ t=t.replace(/([0-9]+)\*x\^\(1\/2\)/g,'$1\\sqrt{x}');
+ t=t.replace(/x\^\(1\/2\)/g,'\\sqrt{x}');
+
+ // fractions from negative powers
+ t=t.replace(/([0-9]+)\*x\^\(-([0-9]+)\)/g,'\\frac{$1}{x^{$2}}');
+ t=t.replace(/x\^\(-([0-9]+)\)/g,'\\frac{1}{x^{$1}}');
+
+ t=t.replace(/\*x\^0/g,'');
+ t=t.replace(/\b1\*x/g,'x');
+ t=t.replace(/\b-1\*x/g,'-x');
+ t=t.replace(/x\^1\b/g,'x');
+
+ t=t.replace(/x\^\((\d+)\)/g,'x^{$1}');
+ t=t.replace(/x\^(\d+)/g,'x^{$1}');
+
+ t=t.replace(/\*/g,'');
+ return t;
+}
+
+function checkEq(inp,target,doubleTask=false){
+for(let x of [.5,1,2,3]){
+ try{
+ let d=doubleTask?
+ math.derivative(math.derivative(norm(inp),'x'),'x'):
+ math.derivative(norm(inp),'x');
+ if(Math.abs(math.evaluate(d.toString(),{x})-math.evaluate(target,{x}))>1e-5)return false;
+ }catch(e){return false;}
+}
+return true;
+}
+
+function poly(level){
+let terms=level==1?2:level==2?3:4, arr=[], sol=[];
+for(let i=0;i<terms;i++){
+ let a=R(-9,9); if(!a)a=1;
+ let n=level==1?R(0,5):level==2?R(0,8):R(0,10);
+ arr.push(`${a}*x^${n}`);
+ sol.push(`(${a}/${n+1})*x^${n+1}`);
+}
+return {f:arr.join('+'),sol:sol.join('+')};
+}
+function rootTask(){let a=R(2,9);return {f:`${a}*x^(1/2)`,sol:`${2*a}/3*x^(3/2)`};}
+function negTask(){let a=R(2,9),n=C([2,3,4]);return {f:`${a}*x^(-${n})`,sol:`(${a}/${1-n})*x^(${1-n})`};}
+function trig(){let a=R(1,8);return Math.random()<.5?{f:`${a}*sin(x)`,sol:`-${a}*cos(x)`}:{f:`${a}*cos(x)`,sol:`${a}*sin(x)`};}
+function expo(){let a=R(1,8);return {f:`${a}*exp(x)`,sol:`${a}*exp(x)`};}
+function lnTask(){let a=R(1,6);return {f:`${a}/x`,sol:`${a}*log(x)`};}
+function chain(){let a=R(2,5);return {bonus:true,points:15,f:`${2*a}*x*exp(${a}*x^2)`,sol:`exp(${a}*x^2)`};}
+function doubleInt(){let a=R(2,5),b=R(2,5);return {double:true,bonus:true,points:15,f:`${a}*x^3+${b}*x`,sol:`(${a}/20)*x^5+(${b}/6)*x^3`};}
+
+function gen(l){
+if(l==2){let b=Math.random(); if(b<.10)return doubleInt();} if(l==3){let b=Math.random(); if(b<.10)return doubleInt(); if(b<.20)return chain();}
+let r=Math.random();
+if(l==1){if(r<.6)return poly(1); if(r<.8)return trig(); return expo();}
+if(l==2){if(r<.55)return poly(2); if(r<.7)return rootTask(); if(r<.85)return negTask(); if(r<.95)return trig(); return expo();}
+if(r<.5)return poly(3); if(r<.65)return rootTask(); if(r<.75)return negTask(); if(r<.85)return trig(); if(r<.9)return expo(); return lnTask();
+}
+
+function menu(){
+let board=hs().map((h,i)=>`<tr><td>${i+1}</td><td>${h.n}</td><td>${h.p}</td></tr>`).join('');
+app.innerHTML=`<h1>∫ Stammfunktionen 8.2</h1>
+<p>Bilde eine Stammfunktion zur gegebenen Funktion.</p>
+<input id=name placeholder="Name">
+<select id=count><option>15</option><option>25</option><option>50</option></select><br><br>
+<div class=card onclick="start(1)">⭐ Level 1</div>
+<div class=card onclick="start(2)">⭐⭐ Level 2</div>
+<div class=card onclick="start(3)">⭐⭐⭐ Level 3</div>
+<h3>🏆 Highscore</h3><table border=1>${board}</table>`;
+}
+function start(l){S={l,max:+count.value,p:0,n:0,name:name.value||'Gast',hist:[]};next();}
+function next(){
+if(S.n>=S.max){saveHS(S.name,S.p);app.innerHTML=`<h1>Fertig</h1><h2>${S.p} Punkte</h2><button onclick="menu()">Menü</button>`;return;}
+S.task=gen(S.l);S.n++;
+let txt=S.task.double?'Bilde eine doppelte Stammfunktion zu:':'Bilde eine Stammfunktion zu:';
+app.innerHTML=`<h2>${S.p} Punkte | ${S.n}/${S.max}</h2><div class=task>${txt}<br><br>\\[f(x)=${pretty(S.task.f)}\\]</div><input id=ans style="width:70%"><button onclick="check()">Prüfen</button>`;
+MathJax.typesetPromise();
+}
+function check(){
+let ok=checkEq(ans.value,S.task.f,S.task.double);
+S.p+=ok?(S.task.points||10):-5;
+let msg=ok?`✅ Richtig! +${S.task.points||10}`:`❌ Falsch! -5<br><br>Eine mögliche Stammfunktion:<br>\\[F(x)=${pretty(S.task.sol)}\\]`;
+app.innerHTML+=`<div class="${ok?(S.task.bonus?'gold':'good'):'bad'}">${msg}</div><br><button onclick="next()">Weiter</button>`;
+MathJax.typesetPromise();
+}
+menu();
+</script></body></html>

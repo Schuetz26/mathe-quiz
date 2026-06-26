@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stammfunktionen</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14/lib/browser/math.js"></script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js" id="MathJax-script" async></script>
+<style>
+  :root {
+    --bg-deep: #161830;
+    --bg-card: #232853;
+    --bg-card-2: #2b3164;
+    --border: #3b4280;
+    --text: #eef0fb;
+    --text-dim: #a9aed9;
+    --blue: #4f7cff;
+    --green: #2ecc71;
+    --yellow: #f4a623;
+    --red: #e84c4c;
+    --good: #2ecc71;
+    --bad: #e84c4c;
+    --gold: #ffd166;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1d2150 0%, var(--bg-deep) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    text-align: center;
+    letter-spacing: 0.2px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin-bottom: 22px;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .choice-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card-2);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .name-input::placeholder { color: var(--text-dim); }
+  .name-input:focus { outline: none; border-color: var(--blue); }
+
+  .pill-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .pill {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 11px 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s ease;
+    text-align: center;
+  }
+  .pill:hover { border-color: var(--blue); }
+  .pill.selected {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+
+  .level-card {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .level-card:hover { border-color: var(--blue); transform: translateY(-1px); }
+  .level-card:active { transform: translateY(0); }
+  .level-card .stars { color: var(--gold); }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .start-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,124,255,0.35); }
+  .start-btn:active { transform: translateY(0); }
+
+  /* ---- History / Highscore ---- */
+  .history-box {
+    margin-top: 18px;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .history-title {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-rank { color: var(--text-dim); width: 22px; flex: 0 0 auto; }
+  .history-name { flex: 1; padding: 0 6px; }
+  .history-score { color: var(--gold); font-weight: 700; }
+  .history-empty { color: var(--text-dim); font-size: 0.88rem; text-align: center; padding: 6px 0; }
+
+  /* ---- Quiz Header ---- */
+  .quiz-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .quiz-top .score { color: var(--gold); font-weight: 700; font-size: 1.05rem; }
+  .progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-card-2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f7cff, #6f5cff);
+    border-radius: 4px;
+    transition: width 0.25s ease;
+  }
+
+  /* ---- Aufgabenanzeige ---- */
+  .task-box {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 16px;
+    text-align: center;
+    margin-bottom: 18px;
+    min-height: 90px;
+  }
+  .task-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .task-box.bonus { border: 1px solid var(--gold); }
+  .bonus-flag {
+    display: inline-block;
+    background: var(--gold);
+    color: #2a1c00;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+  }
+  .task-eq {
+    font-size: 1.3rem;
+    color: var(--text);
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .task-eq mjx-container { max-width: 100%; }
+
+  .answer-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .answer-input {
+    flex: 1;
+    padding: 14px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card-2);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  .answer-input::placeholder { color: var(--text-dim); }
+  .answer-input:focus { outline: none; border-color: var(--blue); }
+  .answer-input:disabled { opacity: 0.6; }
+
+  .check-btn {
+    padding: 14px 22px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .check-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,124,255,0.35); }
+  .check-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+
+  .hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin: 8px 2px 0;
+  }
+
+  /* ---- Feedback ---- */
+  .feedback-box {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: none;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.correct { background: rgba(46,204,113,0.12); border: 1px solid var(--good); }
+  .feedback-box.bonus-correct { background: rgba(255,209,102,0.12); border: 1px solid var(--gold); }
+  .feedback-box.wrong { background: rgba(232,76,76,0.12); border: 1px solid var(--bad); }
+  .feedback-head { font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+  .feedback-box.correct .feedback-head { color: var(--good); }
+  .feedback-box.bonus-correct .feedback-head { color: var(--gold); }
+  .feedback-box.wrong .feedback-head { color: var(--bad); }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+
+  /* ---- Ergebnis ---- */
+  .result-score {
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--gold);
+    margin: 10px 0 4px;
+  }
+  .result-sub {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 22px;
+  }
+
+  @media (max-width: 420px) {
+    .answer-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== START SCREEN ===================== -->
+    <div class="section active" id="screen-start">
+      <h1>∫ Stammfunktionen</h1>
+      <p class="subtitle">Bilde eine Stammfunktion zur gegebenen Funktion</p>
+
+      <div class="choice-group">
+        <div class="choice-label">Name</div>
+        <input class="name-input" id="name-input" placeholder="Dein Name" maxlength="20">
+      </div>
+
+      <div class="choice-group">
+        <div class="choice-label">Anzahl Aufgaben</div>
+        <div class="pill-row" id="count-row">
+          <div class="pill selected" data-count="15">15</div>
+          <div class="pill" data-count="25">25</div>
+          <div class="pill" data-count="50">50</div>
+        </div>
+      </div>
+
+      <div class="choice-group">
+        <div class="choice-label">Level</div>
+        <div class="level-card" data-level="1"><span>Level 1</span><span class="stars">⭐</span></div>
+        <div class="level-card" data-level="2"><span>Level 2</span><span class="stars">⭐⭐</span></div>
+        <div class="level-card" data-level="3"><span>Level 3</span><span class="stars">⭐⭐⭐</span></div>
+      </div>
+
+      <div class="history-box">
+        <div class="history-title">🏆 Highscore</div>
+        <div id="history-list"><div class="history-empty">Noch keine Einträge</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== QUIZ SCREEN ===================== -->
+    <div class="section" id="screen-quiz">
+      <div class="quiz-top">
+        <span id="quiz-progress">Aufgabe 1 / 15</span>
+        <span class="score" id="quiz-score">0 Punkte</span>
+      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <div class="task-box" id="task-box">
+        <div class="task-label" id="task-label">Bilde eine Stammfunktion zu:</div>
+        <div class="task-eq" id="task-eq"></div>
+      </div>
+
+      <div class="answer-row">
+        <input class="answer-input" id="answer-input" placeholder="z. B. 3*x^2+2*x" autocomplete="off">
+        <button class="check-btn" id="check-btn">Prüfen</button>
+      </div>
+      <div class="hint">Eingabe z. B. als <code>3*x^2</code>, <code>sin(x)</code>, <code>e^x</code> oder <code>1/x</code>.</div>
+
+      <div class="feedback-box" id="feedback-box">
+        <div class="feedback-head" id="feedback-head"></div>
+        <div id="feedback-body"></div>
+      </div>
+
+      <button class="next-btn" id="next-btn">Weiter →</button>
+    </div>
+
+    <!-- ===================== RESULT SCREEN ===================== -->
+    <div class="section" id="screen-result">
+      <h1>Quiz beendet 🎉</h1>
+      <div class="result-score" id="result-score">0 Punkte</div>
+      <div class="result-sub" id="result-sub"></div>
+      <button class="start-btn" id="restart-btn">Neues Quiz starten</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STAMMFUNKTIONEN – Spiellogik
+   (unverändert aus der Ursprungsversion übernommen)
+   ============================================================ */
+
+const HS = 'sf82';
+let S = {};
+const R = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const C = a => a[Math.floor(Math.random() * a.length)];
+
+function hs() { return JSON.parse(localStorage.getItem(HS) || '[]'); }
+function saveHS(n, p) {
+  let h = hs();
+  h.push({ n, p });
+  h.sort((a, b) => b.p - a.p);
+  localStorage.setItem(HS, JSON.stringify(h.slice(0, 10)));
+}
+
+function norm(s) {
+  return s.toLowerCase().replace(/\s+/g, '').replace(/,/g, '.')
+    .replace(/(\d)x/g, '$1*x').replace(/sinx/g, 'sin(x)').replace(/cosx/g, 'cos(x)')
+    .replace(/lnx/g, 'log(x)').replace(/ln\(/g, 'log(').replace(/e\^x/g, 'exp(x)').replace(/e\^\(([^)]+)\)/g, 'exp($1)');
+}
+
+function pretty(s) {
+  let t = s;
+
+  // exp
+  t = t.replace(/1\*exp\(x\)/g, 'e^{x}');
+  t = t.replace(/([0-9]+)\*exp\(x\)/g, '$1e^{x}');
+  t = t.replace(/exp\(([^\)]+)\)/g, 'e^{$1}');
+
+  // roots
+  t = t.replace(/1\*x\^\(1\/2\)/g, '\\sqrt{x}');
+  t = t.replace(/([0-9]+)\*x\^\(1\/2\)/g, '$1\\sqrt{x}');
+  t = t.replace(/x\^\(1\/2\)/g, '\\sqrt{x}');
+
+  // fractions from negative powers
+  t = t.replace(/([0-9]+)\*x\^\(-([0-9]+)\)/g, '\\frac{$1}{x^{$2}}');
+  t = t.replace(/x\^\(-([0-9]+)\)/g, '\\frac{1}{x^{$1}}');
+
+  t = t.replace(/\*x\^0/g, '');
+  t = t.replace(/\b1\*x/g, 'x');
+  t = t.replace(/\b-1\*x/g, '-x');
+  t = t.replace(/x\^1\b/g, 'x');
+
+  t = t.replace(/x\^\((\d+)\)/g, 'x^{$1}');
+  t = t.replace(/x\^(\d+)/g, 'x^{$1}');
+
+  t = t.replace(/\*/g, '');
+  t = t.replace(/\+\-/g, '-');
+  t = t.replace(/\b1sin\(x\)/g, 'sin(x)').replace(/\b1cos\(x\)/g, 'cos(x)').replace(/\+\-/g, '-');
+
+  // Kosmetik: "+(-9/3)" bzw. "+(-7)" sauber als "-9/3" bzw. "-7" darstellen
+  t = t.replace(/\+\(-(\d+\/\d+)\)/g, '-$1');
+  t = t.replace(/\+\(-(\d+)\)/g, '-$1');
+  // ... auch am Anfang des Ausdrucks, falls der erste Term schon negativ eingeklammert ist
+  t = t.replace(/^\(-(\d+\/\d+)\)/, '-$1');
+  t = t.replace(/^\(-(\d+)\)/, '-$1');
+
+  return t;
+}
+
+function checkEq(inp, target, doubleTask = false) {
+  for (let x of [.5, 1, 2, 3]) {
+    try {
+      let d = doubleTask ?
+        math.derivative(math.derivative(norm(inp), 'x'), 'x') :
+        math.derivative(norm(inp), 'x');
+      if (Math.abs(math.evaluate(d.toString(), { x }) - math.evaluate(target, { x })) > 1e-5) return false;
+    } catch (e) { return false; }
+  }
+  return true;
+}
+
+function poly(level) {
+  let terms = level == 1 ? 2 : level == 2 ? 3 : 4, arr = [], sol = [];
+  let used = new Set();
+  for (let i = 0; i < terms; i++) {
+    let a = R(-9, 9); if (!a) a = 1;
+    let max = level == 1 ? 5 : level == 2 ? 8 : 10;
+    let n;
+    do { n = R(0, max); } while (used.has(n));
+    used.add(n);
+    arr.push(`${a}*x^${n}`);
+    sol.push(`(${a}/${n + 1})*x^${n + 1}`);
+  }
+  return { f: arr.join('+'), sol: sol.join('+') };
+}
+function rootTask() { let a = R(2, 9); return { f: `${a}*x^(1/2)`, sol: `${2 * a}/3*x^(3/2)` }; }
+function negTask() { let a = R(2, 9), n = C([2, 3, 4]); return { f: `${a}*x^(-${n})`, sol: `(${a}/${1 - n})*x^(${1 - n})` }; }
+function trig() { let a = R(1, 8); return Math.random() < .5 ? { f: `${a}*sin(x)`, sol: `-${a}*cos(x)` } : { f: `${a}*cos(x)`, sol: `${a}*sin(x)` }; }
+function expo() { let a = R(1, 8); return { f: `${a}*exp(x)`, sol: `${a}*exp(x)` }; }
+function lnTask() { let a = R(1, 6); return { f: `${a}/x`, sol: `${a}*log(x)` }; }
+function chain() { let a = R(2, 5); return { bonus: true, points: 15, f: `${2 * a}*x*exp(${a}*x^2)`, sol: `exp(${a}*x^2)` }; }
+function doubleInt() { let a = R(2, 5), b = R(2, 5); return { double: true, bonus: true, points: 15, f: `${a}*x^3+${b}*x`, sol: `(${a}/20)*x^5+(${b}/6)*x^3` }; }
+
+function mixed(level) {
+  let pool = [poly(level), rootTask(), negTask(), trig(), expo()];
+  if (level >= 3) pool.push(lnTask());
+
+  let i = Math.floor(Math.random() * pool.length);
+  let j;
+  do {
+    j = Math.floor(Math.random() * pool.length);
+  } while (j === i);
+
+  let t1 = pool[i];
+  let t2 = pool[j];
+
+  return {
+    f: `${t1.f}+${t2.f}`,
+    sol: `${t1.sol}+${t2.sol}`
+  };
+}
+
+function gen(l) {
+  if (l == 2) { let b = Math.random(); if (b < .10) return doubleInt(); }
+  if (l == 3) { let b = Math.random(); if (b < .10) return doubleInt(); if (b < .20) return chain(); }
+  let r = Math.random();
+  if (l == 1) { if (r < .6) return poly(1); if (r < .8) return trig(); return expo(); }
+  if (l == 2) { if (r < .10) return mixed(2); if (r < .60) return poly(2); if (r < .75) return rootTask(); if (r < .88) return negTask(); if (r < .96) return trig(); return expo(); }
+  if (r < .40) return mixed(3); if (r < .70) return poly(3); if (r < .80) return rootTask(); if (r < .88) return negTask(); if (r < .94) return trig(); if (r < .97) return expo(); return lnTask();
+}
+
+/* ============================================================
+   UI-Layer (im Stil der anderen Quizzes)
+   ============================================================ */
+
+function showScreen(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const board = hs();
+  if (board.length === 0) {
+    list.innerHTML = '<div class="history-empty">Noch keine Einträge</div>';
+    return;
+  }
+  list.innerHTML = board.map((h, i) => `
+    <div class="history-row">
+      <span class="history-rank">${i + 1}.</span>
+      <span class="history-name">${escapeHtml(h.n)}</span>
+      <span class="history-score">${h.p} Pkt</span>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.querySelectorAll('#count-row .pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#count-row .pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+  });
+});
+
+document.querySelectorAll('.level-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const level = parseInt(card.dataset.level);
+    startQuiz(level);
+  });
+});
+
+document.getElementById('check-btn').addEventListener('click', check);
+document.getElementById('answer-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') check();
+});
+document.getElementById('next-btn').addEventListener('click', next);
+document.getElementById('restart-btn').addEventListener('click', () => {
+  showScreen('screen-start');
+  renderHistory();
+});
+
+function startQuiz(level) {
+  const count = parseInt(document.querySelector('#count-row .pill.selected').dataset.count);
+  const name = document.getElementById('name-input').value.trim() || 'Gast';
+  S = { l: level, max: count, p: 0, n: 0, name, hist: [], checked: false };
+  showScreen('screen-quiz');
+  next();
+}
+
+function next() {
+  if (S.n >= S.max) {
+    saveHS(S.name, S.p);
+    finishQuiz();
+    return;
+  }
+  S.task = gen(S.l);
+  S.n++;
+  S.checked = false;
+
+  document.getElementById('quiz-progress').textContent = `Aufgabe ${S.n} / ${S.max}`;
+  document.getElementById('quiz-score').textContent = `${S.p} Punkte`;
+  document.getElementById('progress-fill').style.width = `${((S.n - 1) / S.max) * 100}%`;
+
+  const taskBox = document.getElementById('task-box');
+  const taskLabel = document.getElementById('task-label');
+  taskBox.classList.toggle('bonus', !!S.task.bonus);
+
+  const labelText = S.task.double ? 'Bilde eine doppelte Stammfunktion zu:' : 'Bilde eine Stammfunktion zu:';
+  taskLabel.innerHTML = (S.task.bonus ? `<span class="bonus-flag">Bonusaufgabe · +${S.task.points}</span><br>` : '') + labelText;
+
+  document.getElementById('task-eq').innerHTML = `\\[f(x)=${pretty(S.task.f)}\\]`;
+
+  const answerInput = document.getElementById('answer-input');
+  answerInput.value = '';
+  answerInput.disabled = false;
+  answerInput.style.opacity = '1';
+
+  const checkBtn = document.getElementById('check-btn');
+  checkBtn.disabled = false;
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.remove('show', 'correct', 'wrong', 'bonus-correct');
+
+  document.getElementById('next-btn').classList.remove('show');
+
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise([document.getElementById('task-eq')]);
+  }
+
+  answerInput.focus();
+}
+
+function check() {
+  if (S.checked) return;
+  S.checked = true;
+
+  const answerInput = document.getElementById('answer-input');
+  const inputVal = answerInput.value;
+
+  const ok = checkEq(inputVal, S.task.f, S.task.double);
+  const points = S.task.points || 10;
+  S.p += ok ? points : -5;
+
+  document.getElementById('quiz-score').textContent = `${S.p} Punkte`;
+
+  answerInput.disabled = true;
+  answerInput.style.opacity = '0.8';
+  document.getElementById('check-btn').disabled = true;
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.add('show');
+
+  if (ok) {
+    fb.classList.add(S.task.bonus ? 'bonus-correct' : 'correct');
+    document.getElementById('feedback-head').textContent = `✅ Richtig! +${points}`;
+    document.getElementById('feedback-body').innerHTML = '';
+  } else {
+    fb.classList.add('wrong');
+    document.getElementById('feedback-head').textContent = '❌ Falsch! -5';
+    document.getElementById('feedback-body').innerHTML =
+      `Eine mögliche Stammfunktion:<br>\\[F(x)=${pretty(S.task.sol)}\\]`;
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise([document.getElementById('feedback-box')]);
+  }
+}
+
+function finishQuiz() {
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('result-score').textContent = `${S.p} Punkte`;
+  document.getElementById('result-sub').textContent = `Level ${S.l} · ${S.max} Aufgaben · ${S.name}`;
+  showScreen('screen-result');
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>

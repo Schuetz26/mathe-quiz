@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matheübungen – Startseite</title>
+<style>
+  :root {
+    --bg-deep: #161830;
+    --bg-card: #232853;
+    --bg-card-2: #2b3164;
+    --border: #3b4280;
+    --text: #eef0fb;
+    --text-dim: #a9aed9;
+    --blue: #4f7cff;
+    --green: #2ecc71;
+    --yellow: #f4a623;
+    --red: #e84c4c;
+    --gold: #ffd166;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1d2150 0%, var(--bg-deep) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+    text-align: center;
+    letter-spacing: 0.2px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin-bottom: 26px;
+  }
+
+  .game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .game-tile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--accent);
+    border-radius: 14px;
+    padding: 18px 18px;
+    text-decoration: none;
+    color: var(--text);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .game-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+    border-color: var(--accent);
+  }
+  .game-tile:active { transform: translateY(0); }
+  .game-tile:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .game-icon {
+    flex: 0 0 auto;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #161830;
+    font-weight: 800;
+  }
+
+  .game-info { flex: 1; min-width: 0; }
+  .game-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .game-desc {
+    font-size: 0.86rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .game-arrow {
+    flex: 0 0 auto;
+    font-size: 1.3rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .tile-lgs { --accent: var(--blue); }
+  .tile-stamm { --accent: var(--green); }
+  .tile-lage { --accent: var(--yellow); }
+
+  .tile-stamm .game-icon { font-size: 1.4rem; }
+
+  footer {
+    margin-top: 26px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    opacity: 0.7;
+  }
+
+  @media (max-width: 420px) {
+    .game-tile { padding: 14px; gap: 12px; }
+    .game-icon { width: 44px; height: 44px; font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="card">
+    <h1>📚 Matheübungen</h1>
+    <p class="subtitle">Wähle ein Lernspiel, um zu starten</p>
+
+    <div class="game-list">
+      <a class="game-tile tile-lgs" href="lgs.html">
+        <div class="game-icon">🔢</div>
+        <div class="game-info">
+          <div class="game-title">Lineare Gleichungssysteme</div>
+          <div class="game-desc">Löse LGS mit verschiedenen Verfahren und Schwierigkeitsgraden.</div>
+        </div>
+        <div class="game-arrow">→</div>
+      </a>
+
+      <a class="game-tile tile-stamm" href="stammfunktionen.html">
+        <div class="game-icon">∫</div>
+        <div class="game-info">
+          <div class="game-title">Stammfunktionen</div>
+          <div class="game-desc">Bestimme Stammfunktionen zu vorgegebenen Funktionen.</div>
+        </div>
+        <div class="game-arrow">→</div>
+      </a>
+
+      <a class="game-tile tile-lage" href="lagebeziehungen.html">
+        <div class="game-icon">📐</div>
+        <div class="game-info">
+          <div class="game-title">Lagebeziehungen von Geraden</div>
+          <div class="game-desc">Parallel, identisch, schneidend oder windschief – erkenne die Lage zweier Geraden.</div>
+        </div>
+        <div class="game-arrow">→</div>
+      </a>
+    </div>
+
+    <footer>Punkte sammeln, Level wählen, besser werden.</footer>
+  </div>
+</div>
+
+</body>
+</html>

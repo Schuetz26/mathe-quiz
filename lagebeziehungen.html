@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lagebeziehungen von Geraden</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js" id="MathJax-script" async></script>
+<style>
+  :root {
+    --bg-deep: #161830;
+    --bg-card: #232853;
+    --bg-card-2: #2b3164;
+    --border: #3b4280;
+    --text: #eef0fb;
+    --text-dim: #a9aed9;
+    --blue: #4f7cff;
+    --green: #2ecc71;
+    --yellow: #f4a623;
+    --red: #e84c4c;
+    --good: #2ecc71;
+    --bad: #e84c4c;
+    --gold: #ffd166;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1d2150 0%, var(--bg-deep) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    text-align: center;
+    letter-spacing: 0.2px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin-bottom: 22px;
+  }
+
+  /* ---- Startbildschirm ---- */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .choice-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .pill-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .pill {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 11px 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s ease;
+    text-align: center;
+  }
+  .pill:hover { border-color: var(--blue); }
+  .pill.selected {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .start-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,124,255,0.35); }
+  .start-btn:active { transform: translateY(0); }
+
+  .ghost-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .ghost-btn:hover { border-color: var(--blue); color: var(--text); }
+
+  /* ---- History ---- */
+  .history-box {
+    margin-top: 18px;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .history-title {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-score.good { color: var(--good); font-weight: 700; }
+  .history-score.bad { color: var(--bad); font-weight: 700; }
+  .history-empty { color: var(--text-dim); font-size: 0.88rem; text-align: center; padding: 6px 0; }
+
+  /* ---- Quiz Header ---- */
+  .quiz-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .quiz-top .score { color: var(--gold); font-weight: 700; font-size: 1.05rem; }
+  .progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-card-2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f7cff, #6f5cff);
+    border-radius: 4px;
+    transition: width 0.25s ease;
+  }
+
+  /* ---- Geradenanzeige ---- */
+  .geraden-box {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 16px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    min-height: 90px;
+  }
+  .gerade-eq {
+    font-size: 1.15rem;
+    color: var(--text);
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .gerade-eq mjx-container {
+    max-width: 100%;
+  }
+
+  /* ---- Antwort-Buttons ---- */
+  .answer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .answer-btn {
+    padding: 18px 10px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .answer-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .answer-btn:disabled { cursor: default; transform: none; filter: none; opacity: 0.55; }
+
+  .answer-btn.parallel { background: var(--blue); }
+  .answer-btn.identisch { background: var(--green); }
+  .answer-btn.schneiden { background: var(--yellow); color: #2a1c00; }
+  .answer-btn.windschief { background: var(--red); }
+
+  .answer-btn.correct-highlight { outline: 3px solid #ffffff; opacity: 1 !important; filter: none !important; }
+  .answer-btn.wrong-highlight { outline: 3px solid #ffffff; opacity: 1 !important; filter: none !important; }
+
+  /* ---- Feedback ---- */
+  .feedback-box {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: none;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.correct { background: rgba(46,204,113,0.12); border: 1px solid var(--good); }
+  .feedback-box.wrong { background: rgba(232,76,76,0.12); border: 1px solid var(--bad); }
+  .feedback-head { font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+  .feedback-box.correct .feedback-head { color: var(--good); }
+  .feedback-box.wrong .feedback-head { color: var(--bad); }
+  .feedback-reasons { margin: 8px 0 0; padding-left: 18px; color: var(--text-dim); }
+  .feedback-reasons li { margin-bottom: 3px; }
+
+  /* ---- Bonus Schnittpunkt ---- */
+  .bonus-box {
+    margin-top: 16px;
+    background: var(--bg-card-2);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: none;
+  }
+  .bonus-box.show { display: block; }
+  .bonus-title { font-weight: 700; color: var(--gold); margin-bottom: 10px; font-size: 0.95rem; }
+  .bonus-inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .bonus-inputs span { color: var(--text-dim); }
+  .bonus-inputs input {
+    width: 64px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-deep);
+    color: var(--text);
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  .bonus-inputs input:disabled { opacity: 0.6; }
+  .bonus-submit {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--gold);
+    color: #2a1c00;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .bonus-submit:disabled { opacity: 0.5; cursor: default; }
+  .bonus-result { margin-top: 10px; font-size: 0.9rem; }
+  .bonus-result.good { color: var(--good); }
+  .bonus-result.bad { color: var(--bad); }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+
+  /* ---- Ergebnis ---- */
+  .result-score {
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--gold);
+    margin: 10px 0 4px;
+  }
+  .result-sub {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 22px;
+  }
+  .result-stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 24px;
+  }
+  .result-stat { text-align: center; }
+  .result-stat .num { font-size: 1.4rem; font-weight: 700; }
+  .result-stat .lbl { font-size: 0.8rem; color: var(--text-dim); }
+  .result-stat.good .num { color: var(--good); }
+  .result-stat.bad .num { color: var(--bad); }
+
+  @media (max-width: 420px) {
+    .answer-grid { grid-template-columns: 1fr; }
+    .geraden-box { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== START SCREEN ===================== -->
+    <div class="section active" id="screen-start">
+      <h1>📐 Lagebeziehungen von Geraden</h1>
+      <p class="subtitle">Parallel · identisch · schneidend · windschief</p>
+
+      <div class="choice-group">
+        <div class="choice-label">Level</div>
+        <div class="pill-row" id="level-row">
+          <div class="pill selected" data-level="1">Level 1</div>
+          <div class="pill" data-level="2">Level 2</div>
+          <div class="pill" data-level="3">Level 3</div>
+        </div>
+      </div>
+
+      <div class="choice-group">
+        <div class="choice-label">Anzahl Aufgaben</div>
+        <div class="pill-row" id="count-row">
+          <div class="pill selected" data-count="15">15</div>
+          <div class="pill" data-count="25">25</div>
+          <div class="pill" data-count="50">50</div>
+        </div>
+      </div>
+
+      <button class="start-btn" id="start-btn">Quiz starten</button>
+
+      <div class="history-box">
+        <div class="history-title">Letzte Ergebnisse</div>
+        <div id="history-list"><div class="history-empty">Noch keine Einträge</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== QUIZ SCREEN ===================== -->
+    <div class="section" id="screen-quiz">
+      <div class="quiz-top">
+        <span id="quiz-progress">Aufgabe 1 / 15</span>
+        <span class="score" id="quiz-score">0 Punkte</span>
+      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <div class="geraden-box" id="geraden-box"></div>
+
+      <div class="answer-grid">
+        <button class="answer-btn parallel" data-answer="parallel">🟦 echt parallel</button>
+        <button class="answer-btn identisch" data-answer="identisch">🟩 identisch</button>
+        <button class="answer-btn schneiden" data-answer="schneiden">🟨 schneiden sich</button>
+        <button class="answer-btn windschief" data-answer="windschief">🟥 windschief</button>
+      </div>
+
+      <div class="feedback-box" id="feedback-box">
+        <div class="feedback-head" id="feedback-head"></div>
+        <div id="feedback-body"></div>
+      </div>
+
+      <div class="bonus-box" id="bonus-box">
+        <div class="bonus-title">🎯 Bonus: Bestimme den Schnittpunkt (+10 Bonuspunkte)</div>
+        <div class="bonus-inputs">
+          <span>S = (</span>
+          <input type="text" id="bonus-x" placeholder="x">
+          <span>|</span>
+          <input type="text" id="bonus-y" placeholder="y">
+          <span>|</span>
+          <input type="text" id="bonus-z" placeholder="z">
+          <span>)</span>
+          <button class="bonus-submit" id="bonus-submit">Prüfen</button>
+        </div>
+        <div class="bonus-result" id="bonus-result"></div>
+      </div>
+
+      <button class="next-btn" id="next-btn">Weiter →</button>
+    </div>
+
+    <!-- ===================== RESULT SCREEN ===================== -->
+    <div class="section" id="screen-result">
+      <h1>Quiz beendet 🎉</h1>
+      <div class="result-score" id="result-score">0 Punkte</div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="result-stats">
+        <div class="result-stat good"><div class="num" id="stat-correct">0</div><div class="lbl">Richtig</div></div>
+        <div class="result-stat bad"><div class="num" id="stat-wrong">0</div><div class="lbl">Falsch</div></div>
+        <div class="result-stat"><div class="num" id="stat-bonus">0</div><div class="lbl">Bonuspunkte</div></div>
+      </div>
+      <button class="start-btn" id="restart-btn">Neues Quiz starten</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   LAGEBEZIEHUNGEN VON GERADEN – Logik
+   ============================================================ */
+
+let state = {
+  level: 1,
+  totalQuestions: 15,
+  currentIndex: 0,
+  score: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  bonusPoints: 0,
+  questions: [],
+  answered: false,
+  currentTask: null
+};
+
+const TYPES = ["parallel", "identisch", "schneiden", "windschief"];
+
+/* ---------- Hilfsfunktionen für Zahlen ---------- */
+
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randNonZeroInt(min, max) {
+  let v;
+  do { v = randInt(min, max); } while (v === 0);
+  return v;
+}
+
+// Erzeugt eine "schöne" Zahl je nach Level: ganzzahlig, Dezimalzahl oder Bruch
+// Rückgabe: {value: number, display: string}
+function generateComponent(level, range) {
+  if (level === 1) {
+    const v = randInt(-range, range);
+    return { value: v, display: formatNum(v) };
+  }
+  if (level === 2) {
+    const roll = Math.random();
+    if (roll < 0.8) {
+      const v = randInt(-range, range);
+      return { value: v, display: formatNum(v) };
+    } else if (roll < 0.9) {
+      // einfacher Bruch
+      const num = randNonZeroInt(-7, 7);
+      const den = [2, 4, 5][randInt(0, 2)];
+      return { value: num / den, display: fracDisplay(num, den) };
+    } else {
+      // Dezimalzahl
+      const v = randNonZeroInt(-range, range) + [0.5, 0.25, 0.75][randInt(0, 2)] * (Math.random() < 0.5 ? 1 : -1);
+      const rounded = Math.round(v * 100) / 100;
+      return { value: rounded, display: formatNum(rounded) };
+    }
+  }
+  // Level 3: komplizierte Mischung
+  const roll = Math.random();
+  if (roll < 0.4) {
+    const v = randInt(-range, range);
+    return { value: v, display: formatNum(v) };
+  } else if (roll < 0.75) {
+    const num = randNonZeroInt(-11, 11);
+    const den = [2, 3, 4, 5, 6][randInt(0, 4)];
+    return { value: num / den, display: fracDisplay(num, den) };
+  } else {
+    const options = [0.25, 0.5, 0.75, 1.25, 1.5, 2.25, 2.5, 0.125];
+    let v = options[randInt(0, options.length - 1)] * (Math.random() < 0.5 ? 1 : -1);
+    v += randInt(-Math.floor(range / 2), Math.floor(range / 2));
+    const rounded = Math.round(v * 1000) / 1000;
+    return { value: rounded, display: formatNum(rounded) };
+  }
+}
+
+function formatNum(v) {
+  if (Number.isInteger(v)) return v.toString();
+  // saubere Dezimaldarstellung ohne hässliche Rundungsreste
+  let s = v.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+  return s;
+}
+
+function fracDisplay(num, den) {
+  const g = gcd(num, den);
+  let n = num / g, d = den / g;
+  if (d === 1) return formatNum(n);
+  const sign = (n < 0) ? "-" : "";
+  n = Math.abs(n);
+  return `${sign}\\frac{${n}}{${d}}`;
+}
+
+function vecValue(comp) { return comp.value; }
+
+// Erzeugt einen Vektor mit 3 Komponenten
+function generateVector(level, range, mustBeNonZero = false) {
+  let comps;
+  let attempts = 0;
+  do {
+    comps = [generateComponent(level, range), generateComponent(level, range), generateComponent(level, range)];
+    attempts++;
+  } while (mustBeNonZero && comps.every(c => Math.abs(c.value) < 1e-9) && attempts < 10);
+  return comps;
+}
+
+function scaleVectorInt(vec, factor) {
+  return vec.map(c => {
+    const newVal = c.value * factor;
+    return { value: newVal, display: formatNum(Math.round(newVal * 1000) / 1000) };
+  });
+}
+
+function addVectors(a, b) {
+  return a.map((c, i) => {
+    const v = c.value + b[i].value;
+    return { value: v, display: scaledDisplay(v) };
+  });
+}
+
+function subVectors(a, b) {
+  return a.map((c, i) => {
+    const v = c.value - b[i].value;
+    return { value: v, display: scaledDisplay(v) };
+  });
+}
+
+// Skaliert einen Vektor mit einem Faktor {num, den} EXAKT (kein Rundungsfehler),
+// damit Kollinearität nach der Skalierung mathematisch exakt erhalten bleibt.
+function scaleVectorFloat(vec, factorObj) {
+  const { num, den } = factorObj;
+  return vec.map(c => {
+    const exactValue = (c.value * num) / den;
+    const display = scaledDisplay(exactValue);
+    return { value: exactValue, display };
+  });
+}
+
+// Erzeugt eine möglichst saubere Anzeige für ein Skalierungsergebnis
+function scaledDisplay(exactValue) {
+  const rounded = Math.round(exactValue);
+  if (Math.abs(exactValue - rounded) < 1e-9) return formatNum(rounded);
+
+  for (const q of [2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24]) {
+    const p = exactValue * q;
+    if (Math.abs(p - Math.round(p)) < 1e-7) {
+      return fracDisplay(Math.round(p), q);
+    }
+  }
+  return formatNum(Math.round(exactValue * 1000) / 1000);
+}
+
+// Wandelt einen "schönen" Faktor (ggf. Dezimalzahl) in einen exakten Bruch {num, den} um
+function toExactFraction(x) {
+  for (const den of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+    const num = x * den;
+    if (Math.abs(num - Math.round(num)) < 1e-7) {
+      return { num: Math.round(num), den };
+    }
+  }
+  return { num: Math.round(x * 1000), den: 1000 };
+}
+
+function isCollinear(v1, v2) {
+  // prüft ob v1 = k * v2 für ein skalar k
+  let k = null;
+  for (let i = 0; i < 3; i++) {
+    const a = v1[i].value, b = v2[i].value;
+    if (Math.abs(b) < 1e-9) {
+      if (Math.abs(a) > 1e-9) return false;
+    } else {
+      const ratio = a / b;
+      if (k === null) k = ratio;
+      else if (Math.abs(ratio - k) > 1e-6) return false;
+    }
+  }
+  return true;
+}
+
+function pointEquals(p1, p2) {
+  return p1.every((c, i) => Math.abs(c.value - p2[i].value) < 1e-6);
+}
+
+/* ---------- Lösen des Gleichungssystems für Schnittpunkt ---------- */
+// g: P + r*v ,  h: Q + s*w  =>  finde r,s sodass P + r v = Q + s w
+// Nutzt die ersten zwei Zeilen (Gleichungen), prüft dritte zur Verifikation
+function solveIntersection(P, v, Q, w) {
+  // Gleichung: r*v - s*w = Q - P  (komponentenweise)
+  const d = subVectors(Q, P).map(c => c.value);
+  const vv = v.map(c => c.value);
+  const ww = w.map(c => c.value);
+
+  // Wir suchen 2 Zeilen mit linear unabhängigen Koeffizienten für [r, -s]... eigentlich:
+  // vv[i]*r - ww[i]*s = d[i]
+  // Wähle zwei Zeilen i,j mit nichttrivialer Determinante
+  let solved = null;
+  const rows = [[0,1],[0,2],[1,2]];
+  for (const [i, j] of rows) {
+    const a11 = vv[i], a12 = -ww[i], b1 = d[i];
+    const a21 = vv[j], a22 = -ww[j], b2 = d[j];
+    const det = a11 * a22 - a12 * a21;
+    if (Math.abs(det) > 1e-9) {
+      const r = (b1 * a22 - a12 * b2) / det;
+      const s = (a11 * b2 - b1 * a21) / det;
+      solved = { r, s };
+      break;
+    }
+  }
+  if (!solved) return null;
+
+  // Verifiziere mit allen drei Komponenten
+  const { r, s } = solved;
+  for (let i = 0; i < 3; i++) {
+    const lhs = P[i].value + r * vv[i];
+    const rhs = Q[i].value + s * ww[i];
+    if (Math.abs(lhs - rhs) > 1e-6) return null;
+  }
+  return { r, s };
+}
+
+/* ---------- Aufgaben-Generator je Typ ---------- */
+
+function rangeForLevel(level) {
+  if (level === 1) return 4;
+  if (level === 2) return 6;
+  return 9;
+}
+
+// gibt einen "schönen" Faktor als exakten Bruch {num, den} zurück, je nach Level schwerer erkennbar
+function collinearFactor(level) {
+  if (level === 1) {
+    const opts = [{num:2,den:1}, {num:-2,den:1}, {num:3,den:1}, {num:-3,den:1}, {num:-1,den:1}];
+    return opts[randInt(0, opts.length - 1)];
+  }
+  if (level === 2) {
+    const opts = [{num:3,den:2}, {num:-3,den:2}, {num:2,den:3}, {num:-2,den:3}, {num:5,den:2}, {num:-4,den:3}, {num:4,den:1}];
+    return opts[randInt(0, opts.length - 1)];
+  }
+  const opts = [{num:7,den:3}, {num:-5,den:4}, {num:9,den:5}, {num:-11,den:6}, {num:13,den:4}, {num:-7,den:8}, {num:5,den:3}];
+  return opts[randInt(0, opts.length - 1)];
+}
+
+function generateTask(level, type) {
+  const range = rangeForLevel(level);
+  let g, h, info = {};
+
+  if (type === "parallel") {
+    const v = generateVector(level, range, true);
+    const factor = collinearFactor(level);
+    const w = scaleVectorFloat(v, factor);
+    const P = generateVector(level, range);
+    let Q;
+    let tries = 0;
+    do {
+      Q = generateVector(level, range);
+      tries++;
+    } while (tries < 15 && pointOnLine(Q, P, v));
+    g = { stuetz: P, richt: v };
+    h = { stuetz: Q, richt: w };
+  }
+
+  else if (type === "identisch") {
+    const v = generateVector(level, range, true);
+    const factor = collinearFactor(level);
+    const w = scaleVectorFloat(v, factor);
+    const P = generateVector(level, range);
+    const t = (level === 1) ? { num: randNonZeroInt(-3, 3), den: 1 } : collinearFactor(level);
+    const Q = addVectors(P, scaleVectorFloat(v, t));
+    g = { stuetz: P, richt: v };
+    h = { stuetz: Q, richt: w };
+  }
+
+  else if (type === "schneiden") {
+    const v = generateVector(level, range, true);
+    let w;
+    let tries = 0;
+    do {
+      w = generateVector(level, range, true);
+      tries++;
+    } while (tries < 20 && isCollinear(v, w));
+
+    const S = generateVector(level, range);
+    const rOff = { num: randNonZeroInt(level === 1 ? -3 : -4, level === 1 ? 3 : 4), den: 1 };
+    const sOff = { num: randNonZeroInt(level === 1 ? -3 : -4, level === 1 ? 3 : 4), den: 1 };
+    const P = subVectors(S, scaleVectorFloat(v, rOff));
+    const Q = subVectors(S, scaleVectorFloat(w, sOff));
+    g = { stuetz: P, richt: v };
+    h = { stuetz: Q, richt: w };
+    info.schnittpunkt = S;
+  }
+
+  else { // windschief
+    let v, w, P, Q, sol;
+    let attempts = 0;
+    do {
+      v = generateVector(level, range, true);
+      do {
+        w = generateVector(level, range, true);
+      } while (isCollinear(v, w));
+      P = generateVector(level, range);
+      Q = generateVector(level, range);
+      sol = solveIntersection(P, v, Q, w);
+      attempts++;
+    } while (sol !== null && attempts < 25);
+    g = { stuetz: P, richt: v };
+    h = { stuetz: Q, richt: w };
+  }
+
+  return { type, g, h, info, level };
+}
+
+function pointOnLine(point, stuetz, richt) {
+  // existiert r mit point = stuetz + r*richt ?
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    const diff = point[i].value - stuetz[i].value;
+    const dir = richt[i].value;
+    if (Math.abs(dir) < 1e-9) {
+      if (Math.abs(diff) > 1e-6) return false;
+    } else {
+      const cand = diff / dir;
+      if (r === null) r = cand;
+      else if (Math.abs(cand - r) > 1e-6) return false;
+    }
+  }
+  return true;
+}
+
+/* ---------- Quiz-Ablauf ---------- */
+
+function buildQuestionSet(level, total) {
+  // Verteile die 4 Typen möglichst gleich
+  const base = Math.floor(total / 4);
+  let counts = { parallel: base, identisch: base, schneiden: base, windschief: base };
+  let rest = total - base * 4;
+  const order = ["parallel", "identisch", "schneiden", "windschief"];
+  for (let i = 0; i < rest; i++) counts[order[i % 4]]++;
+
+  let list = [];
+  Object.keys(counts).forEach(t => {
+    for (let i = 0; i < counts[t]; i++) list.push(t);
+  });
+  // mischen
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  return list.map(t => generateTask(level, t));
+}
+
+function vecToLatex(comps) {
+  return `\\begin{pmatrix}${comps[0].display}\\\\${comps[1].display}\\\\${comps[2].display}\\end{pmatrix}`;
+}
+
+function geradeToLatex(name, param, gerade) {
+  return `${name}:\\;\\vec{x}=${vecToLatex(gerade.stuetz)}+${param}\\cdot${vecToLatex(gerade.richt)}`;
+}
+
+function renderTask(task) {
+  const box = document.getElementById('geraden-box');
+  const gLatex = geradeToLatex('g', 'r', task.g);
+  const hLatex = geradeToLatex('h', 's', task.h);
+  box.innerHTML = `
+    <div class="gerade-eq">\\[${gLatex}\\]</div>
+    <div class="gerade-eq">\\[${hLatex}\\]</div>
+  `;
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise([box]);
+  }
+}
+
+function startQuiz() {
+  state.level = parseInt(document.querySelector('#level-row .pill.selected').dataset.level);
+  state.totalQuestions = parseInt(document.querySelector('#count-row .pill.selected').dataset.count);
+  state.currentIndex = 0;
+  state.score = 0;
+  state.correctCount = 0;
+  state.wrongCount = 0;
+  state.bonusPoints = 0;
+  state.questions = buildQuestionSet(state.level, state.totalQuestions);
+
+  showScreen('screen-quiz');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  state.answered = false;
+  state.currentTask = state.questions[state.currentIndex];
+
+  document.getElementById('quiz-progress').textContent =
+    `Aufgabe ${state.currentIndex + 1} / ${state.totalQuestions}`;
+  document.getElementById('quiz-score').textContent = `${state.score} Punkte`;
+  document.getElementById('progress-fill').style.width =
+    `${(state.currentIndex / state.totalQuestions) * 100}%`;
+
+  renderTask(state.currentTask);
+
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct-highlight', 'wrong-highlight');
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.remove('show', 'correct', 'wrong');
+
+  const bonus = document.getElementById('bonus-box');
+  bonus.classList.remove('show');
+  document.getElementById('bonus-x').value = '';
+  document.getElementById('bonus-y').value = '';
+  document.getElementById('bonus-z').value = '';
+  document.getElementById('bonus-x').disabled = false;
+  document.getElementById('bonus-y').disabled = false;
+  document.getElementById('bonus-z').disabled = false;
+  document.getElementById('bonus-submit').disabled = false;
+  document.getElementById('bonus-result').textContent = '';
+  document.getElementById('bonus-result').className = 'bonus-result';
+
+  document.getElementById('next-btn').classList.remove('show');
+}
+
+function reasonsFor(task) {
+  const { type, g, h } = task;
+  const collinear = isCollinear(g.richt, h.richt);
+
+  if (type === 'parallel') {
+    return [
+      'Die Richtungsvektoren sind kollinear (Vielfache voneinander).',
+      'Der Stützpunkt der einen Geraden liegt nicht auf der anderen Geraden.'
+    ];
+  }
+  if (type === 'identisch') {
+    return [
+      'Die Richtungsvektoren sind kollinear.',
+      'Der Stützpunkt der einen Geraden liegt auch auf der anderen Geraden.'
+    ];
+  }
+  if (type === 'schneiden') {
+    return [
+      'Die Richtungsvektoren sind nicht kollinear.',
+      'Das entstehende Gleichungssystem besitzt genau eine Lösung (r, s).'
+    ];
+  }
+  return [
+    'Die Richtungsvektoren sind nicht kollinear.',
+    'Das entstehende Gleichungssystem besitzt keine Lösung.'
+  ];
+}
+
+function labelFor(type) {
+  return {
+    parallel: 'echt parallel',
+    identisch: 'identisch',
+    schneiden: 'schneiden sich',
+    windschief: 'windschief'
+  }[type];
+}
+
+function handleAnswer(chosen) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const task = state.currentTask;
+  const correct = (chosen === task.type);
+
+  document.querySelectorAll('.answer-btn').forEach(btn => btn.disabled = true);
+
+  const chosenBtn = document.querySelector(`.answer-btn[data-answer="${chosen}"]`);
+  const correctBtn = document.querySelector(`.answer-btn[data-answer="${task.type}"]`);
+
+  if (correct) {
+    chosenBtn.classList.add('correct-highlight');
+    state.score += 10;
+    state.correctCount++;
+  } else {
+    chosenBtn.classList.add('wrong-highlight');
+    correctBtn.classList.add('correct-highlight');
+    state.score -= 5;
+    state.wrongCount++;
+  }
+
+  document.getElementById('quiz-score').textContent = `${state.score} Punkte`;
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.add('show');
+  fb.classList.add(correct ? 'correct' : 'wrong');
+
+  const reasons = reasonsFor(task);
+  const reasonsHtml = `<ul class="feedback-reasons">${reasons.map(r => `<li>${r}</li>`).join('')}</ul>`;
+
+  if (correct) {
+    document.getElementById('feedback-head').textContent = '✅ Richtig!';
+    document.getElementById('feedback-body').innerHTML =
+      `Die Geraden sind <strong>${labelFor(task.type)}</strong>.<br>Begründung:${reasonsHtml}`;
+  } else {
+    document.getElementById('feedback-head').textContent = '❌ Leider nicht richtig.';
+    document.getElementById('feedback-body').innerHTML =
+      `Die Geraden sind <strong>${labelFor(task.type)}</strong>.<br>Begründung:${reasonsHtml}`;
+  }
+
+  // Bonusaufgabe nur bei "schneiden" und nur wenn diese Antwort richtig war
+  if (task.type === 'schneiden' && correct) {
+    document.getElementById('bonus-box').classList.add('show');
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function checkBonus() {
+  const task = state.currentTask;
+  if (!task.info.schnittpunkt) return;
+
+  const xIn = document.getElementById('bonus-x').value.trim();
+  const yIn = document.getElementById('bonus-y').value.trim();
+  const zIn = document.getElementById('bonus-z').value.trim();
+
+  const parseVal = (s) => {
+    if (s === '') return NaN;
+    if (s.includes('/')) {
+      const [n, d] = s.split('/').map(Number);
+      return n / d;
+    }
+    return parseFloat(s.replace(',', '.'));
+  };
+
+  const x = parseVal(xIn), y = parseVal(yIn), z = parseVal(zIn);
+  const S = task.info.schnittpunkt;
+  const correctVals = [S[0].value, S[1].value, S[2].value];
+
+  const isRight = [x, y, z].every((v, i) => !isNaN(v) && Math.abs(v - correctVals[i]) < 0.05);
+
+  document.getElementById('bonus-x').disabled = true;
+  document.getElementById('bonus-y').disabled = true;
+  document.getElementById('bonus-z').disabled = true;
+  document.getElementById('bonus-submit').disabled = true;
+
+  const resultEl = document.getElementById('bonus-result');
+  const sDisplay = `S = (${S[0].display} | ${S[1].display} | ${S[2].display})`;
+
+  if (isRight) {
+    state.score += 10;
+    state.bonusPoints += 10;
+    document.getElementById('quiz-score').textContent = `${state.score} Punkte`;
+    resultEl.className = 'bonus-result good';
+    resultEl.textContent = `✅ Genau richtig! +10 Bonuspunkte. ${sDisplay}`;
+  } else {
+    resultEl.className = 'bonus-result bad';
+    resultEl.textContent = `❌ Leider nicht ganz. Richtig wäre: ${sDisplay}`;
+  }
+}
+
+function nextQuestion() {
+  state.currentIndex++;
+  if (state.currentIndex >= state.totalQuestions) {
+    finishQuiz();
+  } else {
+    loadQuestion();
+  }
+}
+
+function finishQuiz() {
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('result-score').textContent = `${state.score} Punkte`;
+  document.getElementById('result-sub').textContent =
+    `Level ${state.level} · ${state.totalQuestions} Aufgaben`;
+  document.getElementById('stat-correct').textContent = state.correctCount;
+  document.getElementById('stat-wrong').textContent = state.wrongCount;
+  document.getElementById('stat-bonus').textContent = state.bonusPoints;
+
+  saveHistory();
+  showScreen('screen-result');
+}
+
+/* ---------- History (im Speicher, kein localStorage) ---------- */
+let historyData = [];
+
+function saveHistory() {
+  historyData.unshift({
+    date: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    level: state.level,
+    total: state.totalQuestions,
+    score: state.score
+  });
+  historyData = historyData.slice(0, 8);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (historyData.length === 0) {
+    list.innerHTML = '<div class="history-empty">Noch keine Einträge</div>';
+    return;
+  }
+  list.innerHTML = historyData.map(h => `
+    <div class="history-row">
+      <span>${h.date} · Level ${h.level} · ${h.total} Aufgaben</span>
+      <span class="history-score ${h.score >= 0 ? 'good' : 'bad'}">${h.score} Pkt</span>
+    </div>
+  `).join('');
+}
+
+/* ---------- Navigation ---------- */
+
+function showScreen(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---------- Event Listener ---------- */
+
+document.querySelectorAll('#level-row .pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#level-row .pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+  });
+});
+
+document.querySelectorAll('#count-row .pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#count-row .pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+  });
+});
+
+document.getElementById('start-btn').addEventListener('click', startQuiz);
+document.getElementById('restart-btn').addEventListener('click', () => showScreen('screen-start'));
+document.getElementById('next-btn').addEventListener('click', nextQuestion);
+document.getElementById('bonus-submit').addEventListener('click', checkBonus);
+
+document.querySelectorAll('.answer-btn').forEach(btn => {
+  btn.addEventListener('click', () => handleAnswer(btn.dataset.answer));
+});
+
+renderHistory();
+</script>
+
+</body>
+</html>

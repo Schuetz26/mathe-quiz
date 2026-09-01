@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rationale Zahlen</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js" id="MathJax-script" async></script>
+<style>
+  :root {
+    --bg-deep: #161830;
+    --bg-card: #232853;
+    --bg-card-2: #2b3164;
+    --border: #3b4280;
+    --text: #eef0fb;
+    --text-dim: #a9aed9;
+    --blue: #4f7cff;
+    --green: #2ecc71;
+    --yellow: #f4a623;
+    --red: #e84c4c;
+    --good: #2ecc71;
+    --bad: #e84c4c;
+    --gold: #ffd166;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1d2150 0%, var(--bg-deep) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app { width: 100%; max-width: 640px; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+  }
+
+  h1 {
+    font-size: 1.45rem;
+    margin: 0 0 4px;
+    text-align: center;
+    letter-spacing: 0.2px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ---- Levelauswahl ---- */
+  .group-label {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-dim);
+    margin: 18px 0 8px;
+  }
+  .group-label:first-of-type { margin-top: 0; }
+
+  .level-card {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    margin-bottom: 9px;
+    cursor: pointer;
+    transition: 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .level-card:hover { border-color: var(--blue); transform: translateY(-1px); }
+  .level-card:active { transform: translateY(0); }
+  .level-card.king { border-color: var(--gold); }
+
+  .level-card .level-info { min-width: 0; }
+  .level-card .level-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .level-card .level-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .level-card .level-badge {
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .level-card .level-badge.maxed { color: var(--gold); }
+
+  /* ---- History ---- */
+  .history-box {
+    margin-top: 20px;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .history-title {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.86rem;
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+    gap: 8px;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-meta { color: var(--text-dim); font-size: 0.78rem; flex: 1; min-width: 0; }
+  .history-score { color: var(--gold); font-weight: 700; flex: 0 0 auto; }
+  .history-empty { color: var(--text-dim); font-size: 0.88rem; text-align: center; padding: 6px 0; }
+
+  /* ---- Quiz Header ---- */
+  .quiz-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .quiz-top .score { color: var(--gold); font-weight: 700; font-size: 1.05rem; }
+  .quiz-level-name {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-card-2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f7cff, #6f5cff);
+    border-radius: 4px;
+    transition: width 0.25s ease;
+  }
+
+  /* ---- Aufgabenanzeige ---- */
+  .task-box {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px 16px;
+    text-align: center;
+    margin-bottom: 18px;
+    min-height: 90px;
+  }
+  .task-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .task-eq {
+    font-size: 1.35rem;
+    color: var(--text);
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .task-eq mjx-container { max-width: 100%; }
+
+  .answer-row { display: flex; gap: 10px; margin-bottom: 6px; }
+  .answer-input {
+    flex: 1;
+    padding: 14px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card-2);
+    color: var(--text);
+    font-size: 1.05rem;
+    text-align: center;
+  }
+  .answer-input::placeholder { color: var(--text-dim); }
+  .answer-input:focus { outline: none; border-color: var(--blue); }
+  .answer-input:disabled { opacity: 0.6; }
+
+  .check-btn {
+    padding: 14px 22px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .check-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,124,255,0.35); }
+  .check-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+
+  .hint { font-size: 0.8rem; color: var(--text-dim); margin: 8px 2px 0; text-align: center; }
+
+  /* ---- Feedback ---- */
+  .feedback-box {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: none;
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.correct { background: rgba(46,204,113,0.12); border: 1px solid var(--good); }
+  .feedback-box.wrong { background: rgba(232,76,76,0.12); border: 1px solid var(--bad); }
+  .feedback-head { font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+  .feedback-box.correct .feedback-head { color: var(--good); }
+  .feedback-box.wrong .feedback-head { color: var(--bad); }
+  .feedback-solution { margin-top: 6px; color: var(--text); }
+
+  .sign-rule-title { margin-bottom: 6px; }
+  .sign-rules {
+    list-style: none;
+    margin: 0 0 4px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 14px;
+  }
+  .sign-rules li {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sign-rules li span:last-child { color: var(--text-dim); margin-left: 8px; }
+
+  .bonus-note {
+    margin-top: 8px;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f7cff, #6f5cff);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    margin-top: 18px;
+  }
+  .start-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,124,255,0.35); }
+  .start-btn:active { transform: translateY(0); }
+
+  /* ---- Ergebnis ---- */
+  .result-score {
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--gold);
+    margin: 10px 0 4px;
+  }
+  .result-sub { text-align: center; color: var(--text-dim); margin-bottom: 6px; }
+  .result-maxed {
+    text-align: center;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+  }
+  .result-stats { display: flex; justify-content: center; gap: 28px; margin: 18px 0 26px; }
+  .result-stat { text-align: center; }
+  .result-stat .num { font-size: 1.4rem; font-weight: 700; }
+  .result-stat .lbl { font-size: 0.8rem; color: var(--text-dim); }
+  .result-stat.good .num { color: var(--good); }
+  .result-stat.bad .num { color: var(--bad); }
+
+  @media (max-width: 420px) {
+    .answer-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== START SCREEN ===================== -->
+    <div class="section active" id="screen-start">
+      <h1>🧮 Das große Quiz der Bruchrechnung, Dezimalzahlen und rationalen Zahlen</h1>
+      <p class="subtitle">Wähle ein Level – 30 Aufgaben, immer mit Steigerung</p>
+
+      <div class="group-label">Klasse 6</div>
+      <div id="levels-6"></div>
+
+      <div class="group-label">Klasse 7</div>
+      <div id="levels-7"></div>
+
+      <div class="history-box">
+        <div class="history-title">Letzte Ergebnisse</div>
+        <div id="history-list"><div class="history-empty">Noch keine Einträge</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== QUIZ SCREEN ===================== -->
+    <div class="section" id="screen-quiz">
+      <div class="quiz-top">
+        <span id="quiz-progress">Aufgabe 1 / 30</span>
+        <span class="score" id="quiz-score">0 Punkte</span>
+      </div>
+      <div class="quiz-level-name" id="quiz-level-name"></div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <div class="task-box">
+        <div class="task-label" id="task-label">Berechne:</div>
+        <div class="task-eq" id="task-eq"></div>
+      </div>
+
+      <div class="answer-row">
+        <input class="answer-input" id="answer-input" placeholder="z. B. 3/4 oder 0,75" autocomplete="off" inputmode="text">
+        <button class="check-btn" id="check-btn">Prüfen</button>
+      </div>
+      <div class="hint">Brüche mit „/" eingeben (z. B. 7/12), Dezimalzahlen mit „,“ (z. B. 0,75).</div>
+
+      <div class="feedback-box" id="feedback-box">
+        <div class="feedback-head" id="feedback-head"></div>
+        <div id="feedback-body"></div>
+      </div>
+
+      <button class="next-btn" id="next-btn">Weiter →</button>
+    </div>
+
+    <!-- ===================== RESULT SCREEN ===================== -->
+    <div class="section" id="screen-result">
+      <h1>Quiz beendet 🎉</h1>
+      <div class="result-score" id="result-score">0 Punkte</div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="result-maxed" id="result-maxed" style="display:none;">🏆 Volle Punktzahl erreicht!</div>
+      <div class="result-stats">
+        <div class="result-stat good"><div class="num" id="stat-correct">0</div><div class="lbl">Richtig</div></div>
+        <div class="result-stat bad"><div class="num" id="stat-wrong">0</div><div class="lbl">Falsch</div></div>
+      </div>
+      <button class="start-btn" id="restart-btn">Zurück zur Levelauswahl</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const R = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+
+function F(n, d = 1) {
+  if (d < 0) { n = -n; d = -d; }
+  if (n === 0) return { n: 0, d: 1 };
+  const g = gcd(n, d);
+  return { n: n / g, d: d / g };
+}
+function addF(a, b) { return F(a.n * b.d + b.n * a.d, a.d * b.d); }
+function subF(a, b) { return F(a.n * b.d - b.n * a.d, a.d * b.d); }
+function mulF(a, b) { return F(a.n * b.n, a.d * b.d); }
+function divF(a, b) { return F(a.n * b.d, a.d * b.n); }
+function eqF(a, b) { const A = F(a.n, a.d), B = F(b.n, b.d); return A.n === B.n && A.d === B.d; }
+
+/* ---------- Dezimal-Terme ---------- */
+function makeDecTerm(signedScaledInt, places) {
+  let neg = signedScaledInt < 0;
+  let scaledInt = Math.abs(signedScaledInt);
+  let trimmed = false;
+  while (places > 0 && scaledInt % 10 === 0) { scaledInt /= 10; places--; trimmed = true; }
+  const n = neg ? -scaledInt : scaledInt;
+  return { isDecimal: true, places, scaledInt, n, d: Math.pow(10, places), trimmed };
+}
+function randDecTerm(places, maxIntPart, allowNegative) {
+  const scaledInt = R(1, Math.max(1, maxIntPart * Math.pow(10, places)));
+  const neg = allowNegative && Math.random() < 0.5;
+  return makeDecTerm(neg ? -scaledInt : scaledInt, places);
+}
+// Wie randDecTerm, garantiert aber, dass die Zahl NICHT zu einer ganzen Zahl "wegkürzt"
+// (letzte Nachkommastelle wird nie 0), damit z.B. bei Multiplikation/Division immer
+// mindestens eine echte Dezimalzahl sichtbar bleibt (keine "nur natürliche Zahlen"-Aufgabe).
+function randDecTermNonWhole(places, maxIntPart, allowNegative) {
+  if (places === 0) return randDecTerm(0, maxIntPart, allowNegative);
+  let scaledInt = R(1, Math.max(1, maxIntPart * Math.pow(10, places)));
+  if (scaledInt % 10 === 0) scaledInt += 1;
+  const neg = allowNegative && Math.random() < 0.5;
+  return makeDecTerm(neg ? -scaledInt : scaledInt, places);
+}
+function decimalStr(term) {
+  let s = term.scaledInt.toString().padStart(term.places + 1, '0');
+  const intPart = term.places > 0 ? s.slice(0, s.length - term.places) : s;
+  const fracPart = term.places > 0 ? s.slice(s.length - term.places) : '';
+  let out = term.places > 0 ? `${intPart},${fracPart}` : intPart;
+  if (term.n < 0) out = '-' + out;
+  return out;
+}
+function decAdd(t1, t2, sign2 = 1) {
+  const places = Math.max(t1.places, t2.places);
+  const s1 = t1.scaledInt * Math.pow(10, places - t1.places) * (t1.n < 0 ? -1 : 1);
+  const s2 = t2.scaledInt * Math.pow(10, places - t2.places) * (t2.n < 0 ? -1 : 1) * sign2;
+  return makeDecTerm(s1 + s2, places);
+}
+function decMul(t1, t2) {
+  const places = t1.places + t2.places;
+  const mag = t1.scaledInt * t2.scaledInt;
+  const neg = (t1.n < 0) !== (t2.n < 0);
+  return makeDecTerm(neg ? -mag : mag, places);
+}
+
+function fracTerm(n, d) { return { isDecimal: false, n, d }; }
+function intTerm(n) { return { isDecimal: false, n, d: 1 }; }
+
+/* ---------- Bruch-Pools: normal (entschärft, im-Kopf-rechenbar) vs. king (Königslevel, unverändert schwer) ---------- */
+const ADDSUB_POOLS_KING = {
+  easy: [2, 3, 4, 5, 6, 8],
+  medium: [3, 4, 5, 6, 7, 8, 9, 10, 12],
+  hard: [4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 18, 20]
+};
+// Für einzelne Zusatz-Brüche (z. B. in lawShortcut/mixedConvert) außerhalb von genFracAddSub:
+// kleinere, im-Kopf-freundliche Nenner statt der großen King-Nenner.
+const ADDSUB_POOLS_SINGLE_NORMAL = {
+  easy: [2, 3, 4, 5, 6],
+  medium: [3, 4, 5, 6, 8, 9, 10],
+  hard: [4, 5, 6, 8, 9, 10, 12]
+};
+const MULDIV_POOLS = {
+  easy: [2, 3, 4, 5, 6],
+  medium: [3, 4, 5, 6, 7, 8, 9],
+  hard: [4, 5, 6, 7, 8, 9, 10]
+};
+const MULDIV_POOLS_LEVEL2_HARD_EXTRA = [4, 5, 6, 7, 8, 9, 10, 12];
+
+// Für Addition/Subtraktion (normal, nicht king): Nenner werden bewusst als Teiler eines
+// gemeinsamen "Zielnenners" C gewählt. Dadurch bleibt der Hauptnenner (= kgV) immer klein
+// und im Kopf berechenbar, statt zufällig auf ein riesiges kgV zu treffen.
+const COMMON_DENOM_POOLS_NORMAL = {
+  easy: [6, 8, 10, 12],
+  medium: [12, 15, 18, 20, 24],
+  hard: [18, 20, 24, 30]
+};
+function divisorsExcl1(n) {
+  const divs = [];
+  for (let i = 2; i <= n; i++) if (n % i === 0) divs.push(i);
+  return divs;
+}
+function randFracTermBounded(C, maxMulFactor, allowNegative) {
+  const d = pick(divisorsExcl1(C));
+  let n, tries = 0;
+  do { n = R(1, Math.max(1, Math.floor(d * maxMulFactor) - 1)); tries++; } while (gcd(n, d) !== 1 && tries < 20);
+  if (allowNegative && Math.random() < 0.4) n = -n;
+  return fracTerm(n, d);
+}
+
+function randFracTerm(tier, allowNegative, context = 'addsub', king = false) {
+  let d;
+  if (context === 'muldiv') {
+    d = pick(MULDIV_POOLS[tier]);
+  } else {
+    d = pick(king ? ADDSUB_POOLS_KING[tier] : ADDSUB_POOLS_SINGLE_NORMAL[tier]);
+  }
+  let maxMulFactor;
+  if (context === 'muldiv') maxMulFactor = 1;
+  else if (king) maxMulFactor = tier === 'easy' ? 1 : 2;
+  else maxMulFactor = tier === 'easy' ? 1 : tier === 'medium' ? 1.2 : 1.3;
+
+  let n, tries = 0;
+  do {
+    n = R(1, Math.max(1, Math.floor(d * maxMulFactor) - 1));
+    tries++;
+  } while (gcd(n, d) !== 1 && tries < 20);
+  if (allowNegative && Math.random() < 0.4) n = -n;
+  return fracTerm(n, d);
+}
+
+function numLatex(term) {
+  if (term.isDecimal) return decimalStr(term);
+  if (term.d === 1) return term.n.toString();
+  const sign = term.n < 0 ? '-' : '';
+  return `${sign}\\frac{${Math.abs(term.n)}}{${term.d}}`;
+}
+function wrapNeg(term) {
+  const t = numLatex(term);
+  return term.n < 0 ? `\\left(${t}\\right)` : t;
+}
+function buildExpr(terms, opsSymbols) {
+  let parts = [wrapNeg(terms[0])];
+  for (let i = 0; i < opsSymbols.length; i++) { parts.push(opsSymbols[i]); parts.push(wrapNeg(terms[i + 1])); }
+  return parts.join(' ');
+}
+function bestFracDisplay(f) {
+  const r = F(f.n, f.d);
+  if (r.d === 1) return r.n.toString();
+  const sign = r.n < 0 ? '-' : '';
+  return `${sign}\\frac{${Math.abs(r.n)}}{${r.d}}`;
+}
+
+/* ============================================================
+   TASK-GENERATOREN
+   ============================================================ */
+
+function genFracAddSub(tier, opts = {}) {
+  const allowNegative = !!opts.allowNegative;
+  const king = !!opts.king;
+  const threeTerm = tier === 'hard' && Math.random() < 0.35;
+
+  let terms;
+  let boundC = null; // gemeinsamer Zielnenner für den Normal-Pfad (für spätere Neu-Ziehung wiederverwendet)
+  if (king) {
+    terms = [randFracTerm(tier, allowNegative, 'addsub', true), randFracTerm(tier, allowNegative, 'addsub', true)];
+    if (threeTerm) terms.push(randFracTerm(tier, allowNegative, 'addsub', true));
+  } else {
+    // Normal: Nenner als Teiler eines gemeinsamen Zielnenners C -> kgV bleibt im-Kopf-rechenbar
+    boundC = pick(COMMON_DENOM_POOLS_NORMAL[tier]);
+    const maxMulFactor = tier === 'easy' ? 1 : tier === 'medium' ? 1.2 : 1.3;
+    terms = [randFracTermBounded(boundC, maxMulFactor, allowNegative), randFracTermBounded(boundC, maxMulFactor, allowNegative)];
+    if (threeTerm) terms.push(randFracTermBounded(boundC, maxMulFactor, allowNegative));
+  }
+
+  let ops = [];
+  for (let i = 0; i < terms.length - 1; i++) ops.push(pick(['+', '-']));
+
+  if (terms.length === 2 && ops[0] === '-' && eqF(F(terms[0].n, terms[0].d), F(terms[1].n, terms[1].d))) {
+    if (king) {
+      terms[1] = randFracTerm(tier, allowNegative, 'addsub', true);
+    } else {
+      const maxMulFactor = tier === 'easy' ? 1 : tier === 'medium' ? 1.2 : 1.3;
+      terms[1] = randFracTermBounded(boundC, maxMulFactor, allowNegative);
+    }
+  }
+
+  if (!allowNegative) {
+    if (terms.length === 2) {
+      // Statt Operator zu erzwingen: Operanden tauschen, damit '-' erhalten bleibt (50/50-Balance)
+      if (ops[0] === '-') {
+        const a = F(terms[0].n, terms[0].d), b = F(terms[1].n, terms[1].d);
+        if (a.n * b.d - b.n * a.d < 0) { const tmp = terms[0]; terms[0] = terms[1]; terms[1] = tmp; }
+      }
+    } else {
+      // 3 Terme: größten zuerst, das reduziert die Notwendigkeit, Operatoren zu erzwingen
+      terms.sort((x, y) => (y.n / y.d) - (x.n / x.d));
+      let acc = F(terms[0].n, terms[0].d);
+      for (let i = 0; i < ops.length; i++) {
+        let next = F(terms[i + 1].n, terms[i + 1].d);
+        if (ops[i] === '-') {
+          const res = subF(acc, next);
+          if (res.n < 0) { ops[i] = '+'; acc = addF(acc, next); }
+          else acc = res;
+        } else acc = addF(acc, next);
+      }
+    }
+  }
+
+  // Reduzierte End-Summe. Für den Kürzungs-Bonus wird die "natürliche" Zwischensumme über den
+  // Hauptnenner (kgV) gebildet -- so wie man es in der Schule lernt -- statt über das simple
+  // Produkt der Nenner. Nur wenn DAS Ergebnis noch kürzbar ist, lohnt sich der Bonus wirklich.
+  let acc = F(terms[0].n, terms[0].d);
+  let rawN = terms[0].n, rawD = terms[0].d;
+  for (let i = 0; i < ops.length; i++) {
+    const next = F(terms[i + 1].n, terms[i + 1].d);
+    acc = ops[i] === '+' ? addF(acc, next) : subF(acc, next);
+    const nn = terms[i + 1].n, nd = terms[i + 1].d;
+    const L = lcm(rawD, nd);
+    const scaledRawN = rawN * (L / rawD);
+    const scaledNn = nn * (L / nd);
+    rawN = ops[i] === '+' ? (scaledRawN + scaledNn) : (scaledRawN - scaledNn);
+    rawD = L;
+  }
+
+  if (opts.forceNegative && !(acc.n < 0 || terms.some(t => t.n < 0))) {
+    const li = terms.length - 1;
+    terms[li] = fracTerm(-Math.abs(terms[li].n), terms[li].d);
+    ops[li - 1] = '+';
+    acc = F(terms[0].n, terms[0].d);
+    rawN = terms[0].n; rawD = terms[0].d;
+    for (let i = 0; i < ops.length; i++) {
+      const next = F(terms[i + 1].n, terms[i + 1].d);
+      acc = ops[i] === '+' ? addF(acc, next) : subF(acc, next);
+      const nn = terms[i + 1].n, nd = terms[i + 1].d;
+      const L = lcm(rawD, nd);
+      const scaledRawN = rawN * (L / rawD);
+      const scaledNn = nn * (L / nd);
+      rawN = ops[i] === '+' ? (scaledRawN + scaledNn) : (scaledRawN - scaledNn);
+      rawD = L;
+    }
+  }
+
+  const rawGcd = gcd(Math.abs(rawN) || 1, Math.abs(rawD));
+  return {
+    category: 'fracAddSub', tier,
+    displayLatex: buildExpr(terms, ops),
+    correct: acc,
+    solutionDisplay: bestFracDisplay(acc),
+    terms, ops,
+    reductionBonusEligible: rawGcd > 1,
+    genericHint: 'Vor dem Addieren oder Subtrahieren müssen Brüche auf einen gemeinsamen Nenner gebracht werden.'
+  };
+}
+
+function genFracMulDiv(tier, opts = {}) {
+  const allowNegative = !!opts.allowNegative;
+  const king = !!opts.king;
+  const op = pick(['\\cdot', '\\colon']);
+
+  let effTier = tier;
+  let pools = MULDIV_POOLS;
+  if (!king && opts.level2Extra && tier === 'hard') {
+    pools = Object.assign({}, MULDIV_POOLS, { hard: MULDIV_POOLS_LEVEL2_HARD_EXTRA });
+  }
+
+  function randMD() {
+    const d = pick(pools[effTier]);
+    let n, tries = 0;
+    do { n = R(1, Math.max(1, d - 1)); tries++; } while (gcd(n, d) !== 1 && tries < 20);
+    if (allowNegative && Math.random() < 0.4) n = -n;
+    return fracTerm(n, d);
+  }
+
+  let t1 = randMD();
+  let t2 = randMD();
+
+  if (Math.random() < 0.5) {
+    const shareFactor = pick([2, 3, 5]);
+    let nt1, nt2;
+    if (Math.random() < 0.5) { nt1 = fracTerm(t1.n, t1.d * shareFactor); nt2 = fracTerm(t2.n * shareFactor, t2.d); }
+    else { nt2 = fracTerm(t2.n, t2.d * shareFactor); nt1 = fracTerm(t1.n * shareFactor, t1.d); }
+    // Entartete Brüche wie 2/2 vermeiden (nur übernehmen, wenn beide Seiten "echte" Brüche bleiben)
+    const degenerate = (nt1.d > 1 && Math.abs(nt1.n) === nt1.d) || (nt2.d > 1 && Math.abs(nt2.n) === nt2.d);
+    if (!degenerate) { t1 = nt1; t2 = nt2; }
+  }
+
+  // ~25%: ein Faktor wird zur natürlichen Zahl (nicht bei king, um Königslevel unverändert zu lassen)
+  // Erst NACH dem Cross-Cancel, damit keine entarteten Brüche wie 2/2 entstehen.
+  if (!king && Math.random() < 0.25) {
+    const range = tier === 'easy' ? 6 : tier === 'medium' ? 9 : 12;
+    const val = R(2, range);
+    if (Math.random() < 0.5) t1 = intTerm(allowNegative && Math.random() < 0.4 ? -val : val);
+    else t2 = intTerm(allowNegative && Math.random() < 0.4 ? -val : val);
+  }
+
+  // Level-2-Hard: gelegentlich 3 Faktoren (nur Multiplikation) - sparsam, damit im Kopf rechenbar bleibt
+  let terms = [t1, t2];
+  let ops = [op];
+  if (!king && opts.level2Extra && tier === 'hard' && op === '\\cdot' && Math.random() < 0.1) {
+    const t3 = randMD();
+    terms.push(t3);
+    ops.push('\\cdot');
+  }
+
+  if (opts.forceNegative && !terms.some(t => t.n < 0)) {
+    const li = terms.length - 1;
+    terms[li] = fracTerm(-Math.abs(terms[li].n), terms[li].d);
+  }
+
+  let f = F(terms[0].n, terms[0].d);
+  let rawN = terms[0].n, rawD = terms[0].d;
+  for (let i = 0; i < ops.length; i++) {
+    const next = F(terms[i + 1].n, terms[i + 1].d);
+    if (ops[i] === '\\cdot') { f = mulF(f, next); rawN *= terms[i + 1].n; rawD *= terms[i + 1].d; }
+    else { f = divF(f, next); rawN *= terms[i + 1].d; rawD *= terms[i + 1].n; }
+  }
+  if (rawD < 0) { rawN = -rawN; rawD = -rawD; }
+  const rawGcd = gcd(Math.abs(rawN) || 1, Math.abs(rawD));
+
+  return {
+    category: 'fracMulDiv', tier, op: ops[0],
+    displayLatex: buildExpr(terms, ops),
+    correct: f,
+    solutionDisplay: bestFracDisplay(f),
+    terms, ops,
+    reductionBonusEligible: rawGcd > 1,
+    genericHint: ops[0] === '\\cdot'
+      ? 'Beim Multiplizieren von Brüchen rechnest du Zähler mal Zähler und Nenner mal Nenner – vorher wenn möglich kürzen.'
+      : 'Bei der Division durch einen Bruch multiplizierst du mit dessen Kehrwert.'
+  };
+}
+
+function genDecAddSub(tier, opts = {}) {
+  const allowNegative = !!opts.allowNegative;
+  const placesPool = tier === 'easy' ? [1] : tier === 'medium' ? [1, 2] : [2];
+  const maxIntPart = tier === 'easy' ? 9 : tier === 'medium' ? 25 : 40;
+
+  let t1 = randDecTermNonWhole(pick(placesPool), maxIntPart, allowNegative);
+  let t2 = randDecTerm(pick(placesPool), maxIntPart, allowNegative);
+  let op = pick(['+', '-']);
+
+  if (!allowNegative && op === '-') {
+    const fa = F(t1.n, t1.d), fb = F(t2.n, t2.d);
+    if (fa.n * fb.d - fb.n * fa.d < 0) { const tmp = t1; t1 = t2; t2 = tmp; }
+  }
+
+  let result = op === '+' ? decAdd(t1, t2, 1) : decAdd(t1, t2, -1);
+
+  if (opts.forceNegative && !(t1.n < 0 || t2.n < 0 || result.n < 0)) {
+    t2 = makeDecTerm(-t2.scaledInt, t2.places);
+    op = '+';
+    result = decAdd(t1, t2, 1);
+  }
+
+  return {
+    category: 'decAddSub', tier, op,
+    displayLatex: buildExpr([t1, t2], [op]),
+    correct: F(result.n, result.d),
+    solutionDisplay: decimalStr(result),
+    terms: [t1, t2], ops: [op],
+    trailingZeroBonusEligible: result.trimmed, finalPlaces: result.places,
+    genericHint: 'Beim schriftlichen Addieren/Subtrahieren von Dezimalzahlen müssen die Kommas genau untereinanderstehen.'
+  };
+}
+
+/* ---- Zehnerpotenz-Varianten (ohne Potenzschreibweise): ×/÷ 10, 100, 1000, 0,1, 0,01, 0,001 ---- */
+const POWER_OF_TEN_POOL = {
+  easy: [0.1, 10, 100],
+  medium: [0.1, 0.01, 10, 100],
+  hard: [0.1, 0.01, 0.001, 10, 100, 1000]
+};
+function powerOfTenTerm(val) {
+  if (val >= 1) return makeDecTerm(Math.round(val), 0);
+  const places = val === 0.1 ? 1 : val === 0.01 ? 2 : 3;
+  return makeDecTerm(1, places);
+}
+function randPowerOfTenTerm(tier) { return powerOfTenTerm(pick(POWER_OF_TEN_POOL[tier])); }
+
+/* ---- Division exakt über Kommaverschiebung aufbauen: Dividend behält garantiert ein Komma ---- */
+function buildDivisionTask(quotientFn, divisorFn, allowNegative, forceNegative, maxTries = 15) {
+  let quotient, divisor, dividend, tries = 0;
+  do {
+    quotient = quotientFn();
+    divisor = divisorFn();
+    if (divisor.scaledInt === 0) divisor = makeDecTerm(R(1, 9), 0);
+    dividend = decMul(quotient, divisor);
+    tries++;
+  } while (dividend.places === 0 && divisor.places === 0 && tries < maxTries);
+  if (forceNegative && !(quotient.n < 0 || divisor.n < 0)) {
+    divisor = makeDecTerm(-divisor.scaledInt, divisor.places);
+    dividend = decMul(quotient, divisor);
+  }
+  return { quotient, divisor, dividend };
+}
+
+/* ---- Dezimal Mult/Div: King (Königslevel - anspruchsvoll, aber jetzt ohne 2x2-Dezimalstellen-Extreme) ---- */
+function genDecMulDivKing(tier, opts = {}) {
+  const allowNegative = !!opts.allowNegative;
+  const isMul = Math.random() < 0.5;
+  const usePower = Math.random() < 0.3;
+
+  if (isMul) {
+    const placesA = tier === 'easy' ? 1 : tier === 'medium' ? 1 : 2;
+    const maxA = tier === 'easy' ? 9 : tier === 'medium' ? 9 : 6;
+    let t1 = randDecTermNonWhole(placesA, maxA, allowNegative);
+    let t2 = usePower ? randPowerOfTenTerm(tier) : randDecTerm(1, 9, allowNegative);
+    if (opts.forceNegative && !(t1.n < 0 || t2.n < 0)) t2 = makeDecTerm(-t2.scaledInt, t2.places);
+    const result = decMul(t1, t2);
+    return {
+      category: 'decMulDiv', tier, op: '\\cdot',
+      displayLatex: buildExpr([t1, t2], ['\\cdot']),
+      correct: F(result.n, result.d), solutionDisplay: decimalStr(result),
+      terms: [t1, t2], ops: ['\\cdot'],
+      trailingZeroBonusEligible: result.trimmed, finalPlaces: result.places,
+      genericHint: 'Beim Multiplizieren von Dezimalzahlen zählst du die Nachkommastellen beider Faktoren zusammen, um die Kommastelle im Ergebnis zu bestimmen.'
+    };
+  } else {
+    const placesQ = tier === 'easy' ? 1 : tier === 'medium' ? 1 : 2;
+    const maxQ = tier === 'easy' ? 9 : tier === 'medium' ? 15 : 12;
+    const { quotient, divisor, dividend } = buildDivisionTask(
+      () => randDecTermNonWhole(placesQ, maxQ, allowNegative),
+      () => usePower ? randPowerOfTenTerm(tier) : randDecTerm(0, tier === 'easy' ? 9 : 12, allowNegative),
+      allowNegative, !!opts.forceNegative
+    );
+    return {
+      category: 'decMulDiv', tier, op: '\\colon',
+      displayLatex: buildExpr([dividend, divisor], ['\\colon']),
+      correct: F(quotient.n, quotient.d), solutionDisplay: decimalStr(quotient),
+      terms: [dividend, divisor], ops: ['\\colon'],
+      trailingZeroBonusEligible: quotient.trimmed, finalPlaces: quotient.places,
+      genericHint: 'Verschiebe bei der Division das Komma in Dividend und Divisor um die gleiche Stellenzahl, bis der Divisor eine ganze Zahl ist.'
+    };
+  }
+}
+
+/* ---- Dezimal Mult/Div: Normal ----
+   easy   = kleines 1x1 MIT Komma auf beiden Seiten (z.B. 0,7 · 0,06)
+   medium = "1x1 mit Kommaverschiebung" (ganze Zahl × 1-Dezimalstellen-Zahl, z.B. 6 · 8,8)
+   hard   = 1-Dezimalstellen-Zahl × (ganze oder 1-Dezimalstellen-Zahl)
+   ~30% aller Aufgaben: eine Zehnerpotenz als Faktor/Divisor (3,53 · 0,001 bzw. 4,7 : 100) */
+function genDecMulDivNormal(tier, opts = {}) {
+  const allowNegative = !!opts.allowNegative;
+  const isMul = Math.random() < 0.5;
+  const usePower = Math.random() < 0.3;
+
+  if (isMul) {
+    let t1;
+    if (tier === 'easy') {
+      // kleines 1x1: einstellige Ziffer, mit Komma (0,1-0,9 oder 0,01-0,09)
+      t1 = makeDecTerm(R(1, 9), pick([1, 2]));
+    } else {
+      t1 = randDecTermNonWhole(1, 9, allowNegative);
+    }
+    let t2;
+    if (usePower) {
+      t2 = randPowerOfTenTerm(tier);
+    } else if (tier === 'easy') {
+      // nicht beide mit 2 Nachkommastellen (bleibt näher am Beispiel "0,7 · 0,06")
+      const p2 = t1.places === 2 ? 1 : pick([1, 2]);
+      t2 = makeDecTerm(R(1, 9), p2);
+    } else if (tier === 'medium') {
+      t2 = randDecTerm(0, 9, allowNegative);
+    } else {
+      t2 = randDecTerm(Math.random() < 0.5 ? 0 : 1, 9, allowNegative);
+    }
+    if (opts.forceNegative && !(t1.n < 0 || t2.n < 0)) t2 = makeDecTerm(-t2.scaledInt, t2.places);
+    const result = decMul(t1, t2);
+    return {
+      category: 'decMulDiv', tier, op: '\\cdot',
+      displayLatex: buildExpr([t1, t2], ['\\cdot']),
+      correct: F(result.n, result.d), solutionDisplay: decimalStr(result),
+      terms: [t1, t2], ops: ['\\cdot'],
+      trailingZeroBonusEligible: result.trimmed, finalPlaces: result.places,
+      genericHint: 'Beim Multiplizieren von Dezimalzahlen zählst du die Nachkommastellen beider Faktoren zusammen, um die Kommastelle im Ergebnis zu bestimmen.'
+    };
+  } else {
+    let quotientFn;
+    if (tier === 'easy') quotientFn = () => makeDecTerm(R(1, 9), pick([1, 2]));
+    else if (tier === 'medium') quotientFn = () => randDecTermNonWhole(1, 9, allowNegative);
+    else quotientFn = () => randDecTermNonWhole(1, 12, allowNegative);
+
+    let divisorFn;
+    if (usePower) divisorFn = () => randPowerOfTenTerm(tier);
+    else if (tier === 'easy') divisorFn = () => randDecTerm(0, 9, allowNegative);
+    else divisorFn = () => randDecTerm(0, 9, allowNegative);
+
+    const { quotient, divisor, dividend } = buildDivisionTask(quotientFn, divisorFn, allowNegative, !!opts.forceNegative);
+    return {
+      category: 'decMulDiv', tier, op: '\\colon',
+      displayLatex: buildExpr([dividend, divisor], ['\\colon']),
+      correct: F(quotient.n, quotient.d), solutionDisplay: decimalStr(quotient),
+      terms: [dividend, divisor], ops: ['\\colon'],
+      trailingZeroBonusEligible: quotient.trimmed, finalPlaces: quotient.places,
+      genericHint: 'Verschiebe bei der Division das Komma in Dividend und Divisor um die gleiche Stellenzahl, bis der Divisor eine ganze Zahl ist.'
+    };
+  }
+}
+
+function genDecMulDiv(tier, opts = {}) {
+  return opts.king ? genDecMulDivKing(tier, opts) : genDecMulDivNormal(tier, opts);
+}
+
+function genIntAddSub(tier, opts = {}) {
+  const range = tier === 'easy' ? 12 : tier === 'medium' ? 25 : 50;
+  const threeTerm = tier === 'hard' && Math.random() < 0.3;
+  let terms = [intTerm(R(1, range)), intTerm(R(1, range))];
+  if (threeTerm) terms.push(intTerm(R(1, range)));
+
+  let ops = [];
+  for (let i = 0; i < terms.length - 1; i++) ops.push(pick(['+', '-']));
+  for (let i = 0; i < terms.length; i++) if (Math.random() < 0.5) terms[i] = intTerm(-terms[i].n);
+
+  let acc = terms[0].n;
+  for (let i = 0; i < ops.length; i++) acc = ops[i] === '+' ? acc + terms[i + 1].n : acc - terms[i + 1].n;
+
+  const hasNeg = terms.some(t => t.n < 0) || acc < 0;
+  if (!hasNeg) {
+    const li = terms.length - 1;
+    terms[li] = intTerm(-Math.abs(terms[li].n));
+    acc = terms[0].n;
+    for (let i = 0; i < ops.length; i++) acc = ops[i] === '+' ? acc + terms[i + 1].n : acc - terms[i + 1].n;
+  }
+
+  return {
+    category: 'intAddSub', tier,
+    displayLatex: buildExpr(terms, ops),
+    correct: F(acc, 1),
+    solutionDisplay: acc.toString(),
+    terms, ops,
+    genericHint: 'Achte beim Addieren und Subtrahieren negativer Zahlen genau auf das Vorzeichen des Ergebnisses.'
+  };
+}
+
+function genIntMulDiv(tier, opts = {}) {
+  const isMul = Math.random() < 0.5;
+  const range = tier === 'easy' ? 10 : tier === 'medium' ? 12 : 15;
+
+  if (isMul) {
+    let a = R(1, range), b = R(1, range);
+    if (Math.random() < 0.5) a = -a; else b = -b;
+    if (a > 0 && b > 0) b = -b;
+    const correct = a * b;
+    return {
+      category: 'intMulDiv', tier, op: '\\cdot',
+      displayLatex: buildExpr([intTerm(a), intTerm(b)], ['\\cdot']),
+      correct: F(correct, 1), solutionDisplay: correct.toString(),
+      terms: [intTerm(a), intTerm(b)], ops: ['\\cdot'],
+      genericHint: 'Überprüfe deine Rechnung noch einmal in Ruhe – der Betrag (die Zahl ohne Vorzeichen) stimmt noch nicht.'
+    };
+  } else {
+    let q = R(1, range), d = R(2, Math.max(2, Math.floor(range / 2)));
+    if (Math.random() < 0.5) q = -q; else d = -d;
+    if (q > 0 && d > 0) d = -d;
+    const dividend = q * d;
+    return {
+      category: 'intMulDiv', tier, op: '\\colon',
+      displayLatex: buildExpr([intTerm(dividend), intTerm(d)], ['\\colon']),
+      correct: F(q, 1), solutionDisplay: q.toString(),
+      terms: [intTerm(dividend), intTerm(d)], ops: ['\\colon'],
+      genericHint: 'Überprüfe deine Rechnung noch einmal in Ruhe – der Betrag (die Zahl ohne Vorzeichen) stimmt noch nicht.'
+    };
+  }
+}
+
+function genLawShortcut(tier, opts = {}) {
+  const king = !!opts.king;
+  const denomsPool = tier === 'hard' ? [6, 8, 9, 10, 12] : [4, 5, 6, 8];
+  const d = pick(denomsPool);
+  let n1, tries = 0;
+  do { n1 = R(1, d - 1); tries++; } while ((gcd(n1, d) !== 1 || gcd(d - n1, d) !== 1 || n1 === d - n1) && tries < 30);
+  const shared1 = fracTerm(n1, d);
+  const shared2 = fracTerm(d - n1, d);
+  const other = randFracTerm(tier, false, 'addsub', king);
+  let terms = [shared1, other, shared2];
+  const order = [0, 1, 2].sort(() => Math.random() - 0.5);
+  terms = order.map(i => terms[i]);
+  const ops = ['+', '+'];
+
+  let acc = F(0, 1);
+  terms.forEach(t => acc = addF(acc, F(t.n, t.d)));
+
+  if (opts.forceNegative && !(terms.some(t => t.n < 0) || acc.n < 0)) {
+    const otherIdx = terms.findIndex(t => t.n === other.n && t.d === other.d);
+    const idx = otherIdx >= 0 ? otherIdx : terms.length - 1;
+    terms[idx] = fracTerm(-Math.abs(terms[idx].n), terms[idx].d);
+    acc = F(0, 1);
+    terms.forEach(t => acc = addF(acc, F(t.n, t.d)));
+  }
+
+  return {
+    category: 'lawShortcut', tier,
+    displayLatex: buildExpr(terms, ops),
+    correct: acc,
+    solutionDisplay: bestFracDisplay(acc),
+    terms, ops,
+    reductionBonusEligible: false,
+    genericHint: 'Geschickt rechnen: Fasse zuerst die beiden Brüche mit gleichem Nenner zusammen, deren Summe eine ganze Zahl ergibt.'
+  };
+}
+
+/* ---- Distributivgesetz (selten, für Level 5) ---- */
+function genDistributive(tier, opts = {}) {
+  // a * (b + c) bzw. geschickt: a*b + a*c -> gleiches Ergebnis, zeigt Ausklammern/Ausmultiplizieren
+  // 'a' ist bewusst ein Bruch oder eine Dezimalzahl, damit die Aufgabe nicht rein aus
+  // natürlichen Zahlen besteht.
+  const b = R(2, 15), c = R(2, 15);
+  const useFraction = Math.random() < 0.5;
+
+  let aTerm, aFrac;
+  if (useFraction) {
+    const [an, ad] = pick([[1, 2], [1, 4], [3, 4], [1, 5], [2, 5], [1, 10], [3, 10]]);
+    aTerm = fracTerm(an, ad);
+    aFrac = F(an, ad);
+  } else {
+    const niceDecimals = [[5, 1], [25, 2], [75, 2], [2, 1], [4, 1], [5, 1], [15, 2], [2, 0]];
+    // Fallback falls [2,0] (ganzzahlig) gezogen würde: erneut ziehen, um Komma zu garantieren
+    let pickd;
+    do { pickd = pick(niceDecimals); } while (pickd[1] === 0);
+    aTerm = makeDecTerm(pickd[0], pickd[1]);
+    aFrac = F(aTerm.n, aTerm.d);
+  }
+
+  const sumFrac = F(b + c, 1);
+  const correct = mulF(aFrac, sumFrac);
+  const aLatex = numLatex(aTerm);
+
+  let solutionDisplay;
+  if (useFraction) {
+    solutionDisplay = bestFracDisplay(correct);
+  } else {
+    const sumTerm = makeDecTerm(b + c, 0);
+    const resultTerm = decMul(aTerm, sumTerm);
+    solutionDisplay = decimalStr(resultTerm);
+  }
+
+  return {
+    category: 'distributive', tier,
+    displayLatex: `${aLatex} \\cdot (${b} + ${c})`,
+    correct,
+    solutionDisplay,
+    terms: [aTerm, intTerm(b), intTerm(c)], ops: ['dist'],
+    genericHint: 'Distributivgesetz: a · (b + c) = a · b + a · c. Multipliziere zuerst die Klammer aus oder rechne die Klammer zuerst aus – beides führt zum selben Ergebnis.'
+  };
+}
+
+const NICE_DECIMALS = [
+  { scaledInt: 5, places: 1, fracD: 2 }, { scaledInt: 25, places: 2, fracD: 4 },
+  { scaledInt: 75, places: 2, fracD: 4 }, { scaledInt: 2, places: 1, fracD: 5 },
+  { scaledInt: 4, places: 1, fracD: 5 }, { scaledInt: 6, places: 1, fracD: 5 },
+  { scaledInt: 8, places: 1, fracD: 5 }, { scaledInt: 125, places: 3, fracD: 8 },
+  { scaledInt: 375, places: 3, fracD: 8 }
+];
+
+function genMixedConvert(tier, opts = {}) {
+  const king = !!opts.king;
+  const nice = pick(NICE_DECIMALS);
+  const decTerm = makeDecTerm(nice.scaledInt, nice.places);
+  const fracD = nice.fracD;
+  const useCompatible = Math.random() < 0.5;
+  const fTerm = useCompatible ? fracTerm(R(1, fracD * 2 - 1), fracD) : randFracTerm(tier, false, 'addsub', king);
+  let finalOp = pick(['+', '-']);
+
+  let a = F(decTerm.n, decTerm.d), b = F(fTerm.n, fTerm.d);
+  let result = finalOp === '+' ? addF(a, b) : subF(a, b);
+  if (!opts.allowNegative && result.n < 0) { finalOp = '+'; result = addF(a, b); }
+
+  let finalDecTerm = decTerm, finalFTerm = fTerm;
+  if (opts.forceNegative && !(finalDecTerm.n < 0 || finalFTerm.n < 0 || result.n < 0)) {
+    finalFTerm = fracTerm(-Math.abs(finalFTerm.n), finalFTerm.d);
+    finalOp = '+';
+    result = addF(F(finalDecTerm.n, finalDecTerm.d), F(finalFTerm.n, finalFTerm.d));
+  }
+
+  return {
+    category: 'mixedConvert', tier,
+    displayLatex: buildExpr([finalDecTerm, finalFTerm], [finalOp]),
+    correct: result,
+    solutionDisplay: bestFracDisplay(result),
+    terms: [finalDecTerm, finalFTerm], ops: [finalOp],
+    reductionBonusEligible: false,
+    genericHint: 'Wandle zuerst die Dezimalzahl in einen Bruch um (oder umgekehrt), bevor du rechnest.'
+  };
+}
+
+function genMixedBasic(tier, opts = {}) {
+  if (opts.allowLaw && tier !== 'easy' && Math.random() < 0.15) return genLawShortcut(tier, opts);
+  if (opts.allowDistributive && tier !== 'easy' && Math.random() < 0.06) return genDistributive(tier, opts);
+  if (opts.allowConvert && tier !== 'easy' && Math.random() < 0.12) return genMixedConvert(tier, opts);
+  const cat = pick(['fracAddSub', 'fracMulDiv', 'decAddSub', 'decMulDiv']);
+  if (cat === 'fracAddSub') return genFracAddSub(tier, opts);
+  if (cat === 'fracMulDiv') return genFracMulDiv(tier, opts);
+  if (cat === 'decAddSub') return genDecAddSub(tier, opts);
+  return genDecMulDiv(tier, opts);
+}
+
+function genMixedRational(tier, opts = {}) {
+  const roll = Math.random();
+  const o = Object.assign({ allowNegative: true, forceNegative: !!opts.forceNegative }, opts);
+  if (roll < 0.1) return genLawShortcut(tier, o);
+  if (roll < 0.18) return genMixedConvert(tier, o);
+  let cats = ['fracAddSub', 'fracMulDiv', 'decAddSub', 'decMulDiv', 'intAddSub', 'intMulDiv'];
+  if (opts.noPureInt) cats = cats.filter(c => c !== 'intAddSub' && c !== 'intMulDiv');
+  const cat = pick(cats);
+  if (cat === 'fracAddSub') return genFracAddSub(tier, o);
+  if (cat === 'fracMulDiv') return genFracMulDiv(tier, o);
+  if (cat === 'decAddSub') return genDecAddSub(tier, o);
+  if (cat === 'decMulDiv') return genDecMulDiv(tier, o);
+  if (cat === 'intAddSub') return genIntAddSub(tier, o);
+  return genIntMulDiv(tier, o);
+}
+
+/* ---------- Sicherheitsnetz: Ergebnis-Nenner bei Brüchen im Normal-Pfad begrenzen (im-Kopf-rechenbar) ---------- */
+const DENOM_CAP = { easy: 12, medium: 24, hard: 40 };
+const FRAC_CATEGORIES = ['fracAddSub', 'fracMulDiv', 'lawShortcut', 'mixedConvert'];
+function capFractionDenom(taskFn, tier, maxTries = 25) {
+  const maxDenom = DENOM_CAP[tier] || 40;
+  let task = taskFn();
+  let tries = 1;
+  while (FRAC_CATEGORIES.includes(task.category) && task.correct.d > maxDenom && tries < maxTries) {
+    task = taskFn();
+    tries++;
+  }
+  return task;
+}
+
+function genForLevel(level, tier) {
+  switch (level) {
+    case 1: return capFractionDenom(() => genFracAddSub(tier, { allowNegative: false }), tier);
+    case 2: return capFractionDenom(() => genFracMulDiv(tier, { allowNegative: false, level2Extra: true }), tier);
+    case 3: return genDecAddSub(tier, { allowNegative: false });
+    case 4: return genDecMulDiv(tier, { allowNegative: false });
+    case 5: return capFractionDenom(() => genMixedBasic(tier, { allowNegative: false, allowLaw: true, allowConvert: true, allowDistributive: true }), tier);
+    case 6: return genMixedBasic('hard', { allowNegative: false, allowLaw: true, allowConvert: true, king: true });
+    case 7: return genIntAddSub(tier);
+    case 8: return genIntMulDiv(tier);
+    case 9: return capFractionDenom(() => genMixedRational(tier, { forceNegative: true }), tier);
+    case 10:
+      if (Math.random() < 0.75) return genMixedRational('hard', { forceNegative: true, king: true, noPureInt: true });
+      return genMixedBasic('hard', { allowNegative: false, allowLaw: true, allowConvert: true, king: true });
+  }
+}
+
+function buildLevelTasks(level) {
+  const tiers = ['easy', 'medium', 'hard'];
+  let list = [];
+  tiers.forEach(tier => { for (let i = 0; i < 10; i++) list.push(genForLevel(level, tier)); });
+  return list;
+}
+
+/* ============================================================
+   TYPISCHE-FEHLER-ERKENNUNG
+   ============================================================ */
+function getMistakeHint(task, userF) {
+  const t = task.terms;
+  try {
+    if (task.category === 'fracAddSub' && t.length === 2) {
+      const op = task.ops[0];
+      const wrongSumDenoms = F(op === '+' ? t[0].n + t[1].n : t[0].n - t[1].n, t[0].d + t[1].d);
+      if (eqF(userF, wrongSumDenoms)) {
+        return 'Typischer Fehler: Beim Addieren/Subtrahieren von Brüchen werden Zähler und Nenner nicht einfach getrennt verrechnet – zuerst musst du beide Brüche auf denselben Nenner bringen.';
+      }
+      const wrongKeepD1 = F(op === '+' ? t[0].n + t[1].n : t[0].n - t[1].n, t[0].d);
+      if (t[0].d !== t[1].d && eqF(userF, wrongKeepD1)) {
+        return 'Typischer Fehler: Du hast vermutlich nur die Zähler verrechnet und den Nenner des ersten Bruchs übernommen, statt beide Brüche auf den gemeinsamen Hauptnenner zu bringen.';
+      }
+    }
+    if (task.category === 'fracMulDiv' && t.length === 2) {
+      const a = F(t[0].n, t[0].d), b = F(t[1].n, t[1].d);
+      if (task.op === '\\colon') {
+        if (eqF(userF, mulF(a, b))) return 'Typischer Fehler: Bei der Division durch einen Bruch musst du mit dem Kehrwert (Zähler und Nenner vertauscht) multiplizieren, nicht direkt multiplizieren.';
+        // Diagonales Kürzen vor dem Kehrwertbilden
+        const g = gcd(Math.abs(t[0].n), Math.abs(t[1].d));
+        if (g > 1) {
+          const wrongPreFlip = F(t[0].n * t[1].d, t[0].d * t[1].n * g * g);
+          if (eqF(userF, wrongPreFlip)) return 'Typischer Fehler: Vor dem Kürzen musst du die Division zuerst in eine Multiplikation mit dem Kehrwert umwandeln – erst danach darf über Kreuz (diagonal) gekürzt werden.';
+        }
+      } else {
+        if (eqF(userF, addF(a, b))) return 'Typischer Fehler: Hier war Multiplizieren gefragt (Zähler mal Zähler, Nenner mal Nenner), nicht Addieren.';
+        // Horizontales Kürzen (Zähler mit Zähler bzw. Nenner mit Nenner statt diagonal)
+        const g1 = gcd(Math.abs(t[0].n), Math.abs(t[1].n));
+        if (g1 > 1) {
+          const wrongHoriz = F((t[0].n / g1) * (t[1].n / g1), t[0].d * t[1].d);
+          if (eqF(userF, wrongHoriz)) return 'Typischer Fehler: Beim Multiplizieren darf nur diagonal gekürzt werden (Zähler mit dem Nenner der anderen Seite) – nicht Zähler mit Zähler oder Nenner mit Nenner (horizontales Kürzen).';
+        }
+      }
+    }
+    if (task.category === 'decMulDiv' && task.op === '\\cdot' && t.length === 2 && t[0].isDecimal && t[1].isDecimal) {
+      const correctPlaces = t[0].places + t[1].places;
+      const mag = t[0].scaledInt * t[1].scaledInt;
+      const neg = (t[0].n < 0) !== (t[1].n < 0);
+      for (const wrongPlaces of [t[0].places, t[1].places]) {
+        if (wrongPlaces !== correctPlaces) {
+          const wrongTerm = makeDecTerm(neg ? -mag : mag, wrongPlaces);
+          if (eqF(userF, F(wrongTerm.n, wrongTerm.d))) {
+            return 'Typischer Fehler: Beim Multiplizieren von Dezimalzahlen musst du die Nachkommastellen BEIDER Faktoren zusammenzählen, um zu wissen, wohin das Komma im Ergebnis gehört.';
+          }
+        }
+      }
+    }
+    if (task.category === 'intAddSub' && t.length === 2) {
+      const op = task.ops[0];
+      const a = t[0].n, b = t[1].n;
+      // "-12 - 2 = -10" Typ: negative Zahl minus positive Zahl -> Betrag wächst, wird oft mit Addieren verwechselt
+      if (op === '-' && a < 0 && b > 0) {
+        const wrong = a + b;
+        if (userF.d === 1 && userF.n === wrong) {
+          return `Typischer Fehler: ${a} − ${b} bedeutet, dass du von ${a} noch ${b} weiter ins Negative gehst. Richtig: ${a} − ${b} = ${a - b}, nicht ${wrong}.`;
+        }
+      }
+      // "5 - (-3)" als "5 - 3" gerechnet (Doppelminus vergessen)
+      if (op === '-' && b < 0) {
+        const wrong = a - Math.abs(b);
+        if (userF.d === 1 && userF.n === wrong) {
+          return `Typischer Fehler: Minus mal Minus wird Plus – „${a} − (${b})" bedeutet ${a} + ${Math.abs(b)}, nicht ${a} − ${Math.abs(b)}.`;
+        }
+      }
+      const correctVal = task.correct.n;
+      if (userF.d === 1 && userF.n === -correctVal && correctVal !== 0) {
+        return 'Typischer Fehler: Das Ergebnis hat das falsche Vorzeichen – überlege an einem Zahlenstrahl, in welche Richtung du dich bewegst.';
+      }
+    }
+    if (task.category === 'intMulDiv') {
+      const correctVal = task.correct.n;
+      if (userF.d === 1 && userF.n === -correctVal && correctVal !== 0) {
+        return 'signrule-mixed';
+      }
+    }
+  } catch (e) { /* generischer Hinweis als Fallback */ }
+  if (task.genericHint === 'signrule-mul' || task.genericHint === 'signrule-div' || task.genericHint === undefined) {
+    // wird in der UI-Schicht per formatHint() in HTML aufgehübscht
+  }
+  return task.genericHint;
+}
+
+/* ---------- Bonuspunkte ---------- */
+function computeBonus(task, parsed) {
+  let bonus = 0, notes = [];
+  if (task.reductionBonusEligible) {
+    let fullyReduced = false;
+    if (parsed.format === 'fraction' || parsed.format === 'mixed') {
+      fullyReduced = gcd(Math.abs(parsed.rawN) || 1, Math.abs(parsed.rawD)) === 1;
+    } else if (parsed.format === 'integer') {
+      fullyReduced = true;
+    }
+    if (fullyReduced) { bonus += 2; notes.push('+2 Bonus: vollständig gekürzt!'); }
+  }
+  if (task.trailingZeroBonusEligible && (parsed.format === 'decimal' || parsed.format === 'integer')) {
+    const userPlaces = parsed.format === 'integer' ? 0 : parsed.literalPlaces;
+    if (userPlaces === task.finalPlaces) { bonus += 1; notes.push('+1 Bonus: unnötige Null weggelassen!'); }
+  }
+  return { bonus, notes };
+}
+
+/* ---------- Eingabe-Parser (inkl. gemischte Zahlen) ---------- */
+function parseAnswerDetailed(str) {
+  if (!str) return null;
+  let s = str.trim();
+  if (s === '') return null;
+  let neg = false;
+  if (s[0] === '-') { neg = true; s = s.slice(1).trim(); }
+  else if (s[0] === '+') { s = s.slice(1).trim(); }
+
+  const mixedMatch = s.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (mixedMatch) {
+    const whole = parseInt(mixedMatch[1], 10), num = parseInt(mixedMatch[2], 10), den = parseInt(mixedMatch[3], 10);
+    if (den === 0) return null;
+    let n = whole * den + num, d = den;
+    if (neg) n = -n;
+    return { frac: F(n, d), format: 'mixed', rawN: n, rawD: d };
+  }
+  if (s.includes('/')) {
+    const parts = s.split('/');
+    if (parts.length !== 2) return null;
+    const n0 = parseInt(parts[0], 10), d0 = parseInt(parts[1], 10);
+    if (!Number.isFinite(n0) || !Number.isFinite(d0) || d0 === 0) return null;
+    const signedN = neg ? -n0 : n0;
+    return { frac: F(signedN, d0), format: 'fraction', rawN: signedN, rawD: d0 };
+  }
+  if (s.includes(',') || ((s.match(/\./g) || []).length === 1)) {
+    const sep = s.includes(',') ? ',' : '.';
+    const parts = s.split(sep);
+    if (parts.length !== 2) return null;
+    const intPart = parts[0] === '' ? '0' : parts[0];
+    const fracPart = parts[1];
+    if (!/^\d+$/.test(intPart) || !/^\d+$/.test(fracPart)) return null;
+    const d0 = Math.pow(10, fracPart.length);
+    let n0 = parseInt(intPart, 10) * d0 + parseInt(fracPart, 10);
+    if (neg) n0 = -n0;
+    return { frac: F(n0, d0), format: 'decimal', literalPlaces: fracPart.length };
+  }
+  if (!/^\d+$/.test(s)) return null;
+  let n0 = parseInt(s, 10);
+  if (neg) n0 = -n0;
+  return { frac: F(n0, 1), format: 'integer', literalPlaces: 0 };
+}
+
+
+/* ============================================================
+   LEVEL-METADATEN
+   ============================================================ */
+const LEVELS = [
+  { id: 1, title: 'Level 1', desc: 'Brüche addieren/subtrahieren', king: false },
+  { id: 2, title: 'Level 2', desc: 'Brüche multiplizieren/dividieren', king: false },
+  { id: 3, title: 'Level 3', desc: 'Dezimalzahlen addieren/subtrahieren', king: false },
+  { id: 4, title: 'Level 4', desc: 'Dezimalzahlen multiplizieren/dividieren', king: false },
+  { id: 5, title: 'Level 5', desc: 'Gemischte Aufgaben (Level 1–4)', king: false },
+  { id: 6, title: 'Level 6 · Königslevel I 👑', desc: 'Wie Level 5, aber durchgehend knifflig', king: true },
+  { id: 7, title: 'Level 7', desc: 'Ganze Zahlen addieren/subtrahieren', king: false },
+  { id: 8, title: 'Level 8', desc: 'Ganze Zahlen multiplizieren/dividieren', king: false },
+  { id: 9, title: 'Level 9', desc: 'Rationale Zahlen gemischt', king: false },
+  { id: 10, title: 'Level 10 · Königslevel II 👑', desc: 'Wie Level 9, aber durchgehend knifflig', king: true },
+];
+
+/* ============================================================
+   UI-LAYER
+   ============================================================ */
+
+const HS_KEY = 'ratZahlenHS_v2';
+let state = { level: 1, tasks: [], idx: 0, score: 0, correctCount: 0, wrongCount: 0, checked: false, task: null };
+
+function hsAll() { return JSON.parse(localStorage.getItem(HS_KEY) || '[]'); }
+function hsSave(level, punkte) {
+  let h = hsAll();
+  h.unshift({ level, punkte, datum: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }) });
+  localStorage.setItem(HS_KEY, JSON.stringify(h.slice(0, 60)));
+}
+function bestForLevel(level) {
+  const h = hsAll().filter(e => e.level === level);
+  if (h.length === 0) return null;
+  return Math.max(...h.map(e => e.punkte));
+}
+function maxedForLevel(level) {
+  return hsAll().some(e => e.level === level && e.punkte >= 300);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderLevelCards() {
+  const box6 = document.getElementById('levels-6');
+  const box7 = document.getElementById('levels-7');
+  box6.innerHTML = '';
+  box7.innerHTML = '';
+  LEVELS.forEach(lv => {
+    const best = bestForLevel(lv.id);
+    const maxed = maxedForLevel(lv.id);
+    const badge = best === null
+      ? '<span class="level-badge">–</span>'
+      : `<span class="level-badge ${maxed ? 'maxed' : ''}">${maxed ? '🏆 ' : ''}${best}/300</span>`;
+    const el = document.createElement('div');
+    el.className = 'level-card' + (lv.king ? ' king' : '');
+    el.innerHTML = `
+      <div class="level-info">
+        <div class="level-title">${lv.title}</div>
+        <div class="level-desc">${lv.desc}</div>
+      </div>
+      ${badge}
+    `;
+    el.addEventListener('click', () => startQuiz(lv.id));
+    (lv.id <= 6 ? box6 : box7).appendChild(el);
+  });
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const h = hsAll().slice(0, 8);
+  if (h.length === 0) { list.innerHTML = '<div class="history-empty">Noch keine Einträge</div>'; return; }
+  list.innerHTML = h.map(e => {
+    const lv = LEVELS.find(l => l.id === e.level);
+    const maxed = e.punkte >= 300;
+    return `
+      <div class="history-row">
+        <span class="history-meta">${e.datum} · ${lv ? lv.title.split(' ·')[0] : 'Level ' + e.level}</span>
+        <span class="history-score">${maxed ? '🏆 ' : ''}${e.punkte} Pkt</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function startQuiz(level) {
+  state.level = level;
+  state.tasks = buildLevelTasks(level);
+  state.idx = 0;
+  state.score = 0;
+  state.correctCount = 0;
+  state.wrongCount = 0;
+  showScreen('screen-quiz');
+  loadTask();
+}
+
+function loadTask() {
+  state.checked = false;
+  state.task = state.tasks[state.idx];
+
+  document.getElementById('quiz-progress').textContent = `Aufgabe ${state.idx + 1} / ${state.tasks.length}`;
+  document.getElementById('quiz-score').textContent = `${state.score} Punkte`;
+  const lv = LEVELS.find(l => l.id === state.level);
+  document.getElementById('quiz-level-name').textContent = lv.title.replace(/ ·.*/, '') + ' – ' + lv.desc;
+  document.getElementById('progress-fill').style.width = `${(state.idx / state.tasks.length) * 100}%`;
+
+  document.getElementById('task-eq').innerHTML = `\\[${state.task.displayLatex}\\]`;
+
+  const input = document.getElementById('answer-input');
+  input.value = '';
+  input.disabled = false;
+  document.getElementById('check-btn').disabled = false;
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.remove('show', 'correct', 'wrong');
+  document.getElementById('next-btn').classList.remove('show');
+
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise([document.getElementById('task-eq')]);
+  }
+  input.focus();
+}
+
+/* ---------- Vorzeichenregeln hübsch als Tabelle ---------- */
+function signRuleHtml(kind) {
+  const rows = kind === 'div'
+    ? [['(+) : (+)', '(+)'], ['(+) : (−)', '(−)'], ['(−) : (+)', '(−)'], ['(−) : (−)', '(+)']]
+    : [['(+) · (+)', '(+)'], ['(+) · (−)', '(−)'], ['(−) · (+)', '(−)'], ['(−) · (−)', '(+)']];
+  return `<div class="sign-rule-title">Typischer Fehler: Vorzeichenregel nicht beachtet.</div>
+    <ul class="sign-rules">${rows.map(r => `<li><span>${r[0]}</span><span>= ${r[1]}</span></li>`).join('')}</ul>`;
+}
+
+function resolveHintHtml(hintText, task) {
+  if (hintText === 'signrule-mul') return signRuleHtml('mul');
+  if (hintText === 'signrule-div') return signRuleHtml('div');
+  if (hintText === 'signrule-mixed') return signRuleHtml(task.op === '\\colon' ? 'div' : 'mul');
+  return hintText;
+}
+
+function check() {
+  if (state.checked) return;
+  state.checked = true;
+
+  const input = document.getElementById('answer-input');
+  const raw = input.value;
+  const parsed = parseAnswerDetailed(raw);
+  const ok = parsed !== null && eqF(parsed.frac, state.task.correct);
+
+  let bonusInfo = { bonus: 0, notes: [] };
+  if (ok) bonusInfo = computeBonus(state.task, parsed);
+
+  const gained = ok ? (10 + bonusInfo.bonus) : 0;
+  state.score += gained;
+  if (ok) state.correctCount++; else state.wrongCount++;
+
+  document.getElementById('quiz-score').textContent = `${state.score} Punkte`;
+  input.disabled = true;
+  document.getElementById('check-btn').disabled = true;
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.add('show', ok ? 'correct' : 'wrong');
+
+  if (ok) {
+    document.getElementById('feedback-head').textContent = `✅ Richtig! +${gained}`;
+    document.getElementById('feedback-body').innerHTML = bonusInfo.notes.length
+      ? bonusInfo.notes.map(n => `<div class="bonus-note">🌟 ${n}</div>`).join('')
+      : '';
+  } else {
+    document.getElementById('feedback-head').textContent = '❌ Leider falsch.';
+    let hintHtml;
+    if (parsed === null) {
+      hintHtml = 'Deine Eingabe konnte nicht gelesen werden. Bitte Brüche mit „/“ (z. B. 3/4 oder gemischt 1 2/3) und Dezimalzahlen mit „,“ (z. B. 0,75) eingeben.';
+    } else {
+      hintHtml = resolveHintHtml(getMistakeHint(state.task, parsed.frac), state.task);
+    }
+    const sol = state.task.solutionDisplay;
+    const solHtml = sol.includes('\\frac') ? `\\(${sol}\\)` : sol;
+    document.getElementById('feedback-body').innerHTML =
+      `${hintHtml}<div class="feedback-solution">Richtige Lösung: <strong>${solHtml}</strong></div>`;
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise([document.getElementById('feedback-box')]);
+  }
+}
+
+function nextTask() {
+  state.idx++;
+  if (state.idx >= state.tasks.length) finishQuiz();
+  else loadTask();
+}
+
+function finishQuiz() {
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('result-score').textContent = `${state.score} Punkte`;
+  const lv = LEVELS.find(l => l.id === state.level);
+  document.getElementById('result-sub').textContent = `${lv.title.replace(/ ·.*/, '')} · ${state.tasks.length} Aufgaben`;
+  document.getElementById('stat-correct').textContent = state.correctCount;
+  document.getElementById('stat-wrong').textContent = state.wrongCount;
+  document.getElementById('result-maxed').style.display = state.score >= 300 ? 'block' : 'none';
+
+  hsSave(state.level, state.score);
+  showScreen('screen-result');
+}
+
+document.getElementById('check-btn').addEventListener('click', check);
+document.getElementById('answer-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
+document.getElementById('next-btn').addEventListener('click', nextTask);
+document.getElementById('restart-btn').addEventListener('click', () => {
+  renderLevelCards();
+  renderHistory();
+  showScreen('screen-start');
+});
+
+renderLevelCards();
+renderHistory();
+</script>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hilfekarten Bierglas</title>
+<title>Modellieren am Bierglas</title>
 <style>
   :root {
     --bg: #f7f7f5;
@@ -89,13 +89,13 @@
 <main>
   <header>
     <p>Mathe LK Q2</p>
-    <h1>Modellieren mit Rotationsvolumina</h1>
+    <h1>Modellieren am Bierglas</h1>
   </header>
 
   <section id="menu" class="view active">
     <div class="menu">
-      <button style="--c: var(--allgemein)" data-go="allgemein">Allgemein <span>3 Karten</span></button>
-      <button style="--c: var(--geogebra)" data-go="geogebra">GeoGebra <span>3 Karten</span></button>
+      <button style="--c: var(--allgemein)" data-go="allgemein">Allgemein <span>2 Karten</span></button>
+      <button style="--c: var(--geogebra)" data-go="geogebra">GeoGebra <span>4 Karten</span></button>
       <button style="--c: var(--haendisch)" data-go="haendisch">Händisch <span>2 Karten</span></button>
     </div>
   </section>
@@ -105,16 +105,13 @@
     <h2>Allgemein</h2>
 
     <div class="card"><button><span class="nr">1</span>Grundidee<span class="arrow">›</span></button>
-      <div class="body"><p>Das Bierglas lässt sich als ein Rotationskörper modellieren. Überlegt euch, welche Vereinfachungen ihr ggf. machen wollt, sucht dann eine passende Randfunktion für das Glas und nutzt die geltenden Formeln für Füllvolumen und Materialverbrauch.</p></div>
+      <div class="body"><p>Das Bierglas lässt sich als ein Rotationskörper modellieren. Überlegt euch, welche Vereinfachungen ihr ggf. machen wollt, sucht dann eine passende Randfunktion für das Glas und nutzt die geltende Formel für das Füllvolumen.</p></div>
     </div>
 
     <div class="card"><button><span class="nr">2</span>Innerer und äußerer Rand<span class="arrow">›</span></button>
-      <div class="body"><p>Überlegt euch, wie genau ihr die innere und äußere Randfunktion unterscheidet. Hierbei <em>kann</em> es sinnvoll sein, den Dickenmesser zu nutzen.</p></div>
+      <div class="body"><p>Überlegt euch, ob und wenn ja wie genau ihr die innere und äußere Randfunktion unterscheidet. Hierbei <em>kann</em> es sinnvoll sein, den Dickenmesser zu nutzen.</p></div>
     </div>
 
-    <div class="card"><button><span class="nr">3</span>Integrieren der fertigen Funktionen<span class="arrow">›</span></button>
-      <div class="body"><p>Randfunktion(en) fertig? Dann integriert sie gemäß den gängigen Formeln für Rotationsvolumina (gerne CAS verwenden).</p></div>
-    </div>
   </section>
 
   <section id="geogebra" class="view" style="--c: var(--geogebra)">
@@ -123,10 +120,9 @@
 
     <div class="card"><button><span class="nr">1</span>Mögliche GeoGebra-Befehle<span class="arrow">›</span></button>
       <div class="body">
-        <p class="cmd"><code>Polynom(Liste von Punkten)</code> (z. B. <code>Polynom(A,B,C)</code>):</p>
-        <p>Erstellt ein Polynom durch die angegebenen Punkte (Punkte sind weiterhin variierbar).</p>
-        <p class="cmd">Allgemeine Einstellungen (rechts) → „Runden“:</p>
-        <p>Stellt die Anzahl der Dezimalstellen ein, auf die allgemein gerundet wird.</p>
+        <p>Unter „Werkzeuge“ findet ihr das Werkzeug „Punkt“. Damit könnt ihr Punkte per Klick direkt ins Grafikfenster, also auch auf das Bild, setzen.</p>
+        <p>Der Befehl <code>Polynom(Liste von Punkten)</code>, z.&nbsp;B. <code>Polynom(A,B,C)</code>, erstellt ein Polynom durch die angegebenen Punkte. Die Punkte könnt ihr danach weiterhin verschieben.</p>
+        <p>In den allgemeinen Einstellungen (rechts) könnt ihr unter „Runden“ einstellen, auf wie viele Dezimalstellen allgemein gerundet wird.</p>
       </div>
     </div>
 
@@ -135,7 +131,11 @@
     </div>
 
     <div class="card"><button><span class="nr">3</span>Randfunktion aufstellen<span class="arrow">›</span></button>
-      <div class="body"><p>Nutzt die Polynomfunktion, um eine passende Randfunktion aufzustellen.</p></div>
+      <div class="body"><p>Nutzt die Polynomfunktion, um eine passende Randfunktion aufzustellen. Integriert diese dann am besten in CASeasy.</p></div>
+    </div>
+
+    <div class="card"><button><span class="nr">4</span>Nachkommastellen<span class="arrow">›</span></button>
+      <div class="body"><p>Achtet darauf, dass ihr bei eurem Polynom immer eine passende Anzahl von Nachkommastellen nehmt (bei jeder Zahl ca. 3–4 von Null verschiedene). Dies ist sonst eine häufige Ungenauigkeitsquelle.</p></div>
     </div>
   </section>
 

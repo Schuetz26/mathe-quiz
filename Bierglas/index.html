@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hilfekarten Bierglas</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #222;
+    --muted: #666;
+    --line: #e2e2de;
+    --allgemein: #2f7d6d;
+    --geogebra: #3a6ea5;
+    --haendisch: #b0702a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  h1 { font-size: 22px; margin: 2px 0 24px; }
+
+  .menu { display: grid; gap: 12px; }
+  .menu button {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 18px 20px;
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 6px solid var(--c);
+    border-radius: 10px;
+    font: inherit; font-weight: 600; font-size: 19px; color: var(--text);
+    cursor: pointer; text-align: left;
+  }
+  .menu button span { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .menu button:active { background: #f0f0ec; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .back {
+    display: block; background: none; border: none; padding: 0; margin-bottom: 16px;
+    font: inherit; font-size: 15px; color: var(--muted); cursor: pointer;
+  }
+  .view h2 {
+    font-size: 20px; margin: 0 0 16px;
+    padding-bottom: 6px; border-bottom: 3px solid var(--c);
+    display: inline-block;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; margin-bottom: 10px; overflow: hidden;
+  }
+  .card > button {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 16px 18px;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--text); text-align: left;
+  }
+  .card .nr {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--c); color: #fff;
+    display: grid; place-items: center; font-size: 14px;
+  }
+  .card .arrow { margin-left: auto; color: var(--muted); transition: transform .2s; }
+  .card.open .arrow { transform: rotate(90deg); }
+  .card .body {
+    display: none; padding: 0 18px 18px 58px;
+  }
+  .card.open .body { display: block; }
+  .card.open { border-color: var(--c); }
+  .body p { margin: 0 0 10px; }
+  .body p:last-child { margin-bottom: 0; }
+  .cmd { font-style: italic; margin-bottom: 2px !important; }
+  code {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: #f1f1ee; padding: 1px 5px; border-radius: 4px; font-style: normal;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p>Mathe LK Q2</p>
+    <h1>Modellieren mit Rotationsvolumina</h1>
+  </header>
+
+  <section id="menu" class="view active">
+    <div class="menu">
+      <button style="--c: var(--allgemein)" data-go="allgemein">Allgemein <span>3 Karten</span></button>
+      <button style="--c: var(--geogebra)" data-go="geogebra">GeoGebra <span>3 Karten</span></button>
+      <button style="--c: var(--haendisch)" data-go="haendisch">Händisch <span>2 Karten</span></button>
+    </div>
+  </section>
+
+  <section id="allgemein" class="view" style="--c: var(--allgemein)">
+    <button class="back" data-go="menu">← Menü</button>
+    <h2>Allgemein</h2>
+
+    <div class="card"><button><span class="nr">1</span>Grundidee<span class="arrow">›</span></button>
+      <div class="body"><p>Das Bierglas lässt sich als ein Rotationskörper modellieren. Überlegt euch, welche Vereinfachungen ihr ggf. machen wollt, sucht dann eine passende Randfunktion für das Glas und nutzt die geltenden Formeln für Füllvolumen und Materialverbrauch.</p></div>
+    </div>
+
+    <div class="card"><button><span class="nr">2</span>Innerer und äußerer Rand<span class="arrow">›</span></button>
+      <div class="body"><p>Überlegt euch, wie genau ihr die innere und äußere Randfunktion unterscheidet. Hierbei <em>kann</em> es sinnvoll sein, den Dickenmesser zu nutzen.</p></div>
+    </div>
+
+    <div class="card"><button><span class="nr">3</span>Integrieren der fertigen Funktionen<span class="arrow">›</span></button>
+      <div class="body"><p>Randfunktion(en) fertig? Dann integriert sie gemäß den gängigen Formeln für Rotationsvolumina (gerne CAS verwenden).</p></div>
+    </div>
+  </section>
+
+  <section id="geogebra" class="view" style="--c: var(--geogebra)">
+    <button class="back" data-go="menu">← Menü</button>
+    <h2>GeoGebra</h2>
+
+    <div class="card"><button><span class="nr">1</span>Mögliche GeoGebra-Befehle<span class="arrow">›</span></button>
+      <div class="body">
+        <p class="cmd"><code>Polynom(Liste von Punkten)</code> (z. B. <code>Polynom(A,B,C)</code>):</p>
+        <p>Erstellt ein Polynom durch die angegebenen Punkte (Punkte sind weiterhin variierbar).</p>
+        <p class="cmd">Allgemeine Einstellungen (rechts) → „Runden“:</p>
+        <p>Stellt die Anzahl der Dezimalstellen ein, auf die allgemein gerundet wird.</p>
+      </div>
+    </div>
+
+    <div class="card"><button><span class="nr">2</span>Maßstab<span class="arrow">›</span></button>
+      <div class="body"><p>Überlegt euch, wie ihr in eurer Modellierung möglichst praktisch den passenden Maßstab einbaut. Verwendet dazu am besten die vorgegebene Höhe des Glases. Stellt somit zuerst das Bild fest passend ein und lasst diese Position dann unverändert.</p></div>
+    </div>
+
+    <div class="card"><button><span class="nr">3</span>Randfunktion aufstellen<span class="arrow">›</span></button>
+      <div class="body"><p>Nutzt die Polynomfunktion, um eine passende Randfunktion aufzustellen.</p></div>
+    </div>
+  </section>
+
+  <section id="haendisch" class="view" style="--c: var(--haendisch)">
+    <button class="back" data-go="menu">← Menü</button>
+    <h2>Händisch</h2>
+
+    <div class="card"><button><span class="nr">1</span>Ansatz<span class="arrow">›</span></button>
+      <div class="body"><p>Messt charakteristische Punkte des Glases mit dem Lineal aus. Stellt dazu passende Gleichungen für eine Funktionsgleichung des Randes auf. Wählt dabei einen sinnvollen Funktionsansatz (bspw. Polynom x-ten Grades, …).</p></div>
+    </div>
+
+    <div class="card"><button><span class="nr">2</span>Gleichungssystem<span class="arrow">›</span></button>
+      <div class="body"><p>Wenn ihr Gleichungen mit Bedingungen an die Randfunktion aufgestellt habt, erhaltet ihr ein Gleichungssystem. Löst dieses (gern mit CAS) und ihr erhaltet eure Randfunktion.</p></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  document.querySelectorAll('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+      document.getElementById(b.dataset.go).classList.add('active');
+      document.querySelectorAll('.card.open').forEach(function (c) { c.classList.remove('open'); });
+      window.scrollTo(0, 0);
+    });
+  });
+  document.querySelectorAll('.card > button').forEach(function (b) {
+    b.addEventListener('click', function () { b.parentElement.classList.toggle('open'); });
+  });
+</script>
+</body>
+</html>

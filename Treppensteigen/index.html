@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hilfekarten AB 6 – Leistung</title>
+<style>
+  :root {
+    --petrol: #0E5A6E;
+    --orange: #F28C28;
+    --text: #1f2a2e;
+    --muted: #5f6f74;
+    --bg: #f6f8f9;
+    --c1-bg: #e6f1f4; --c1-bar: #0E5A6E;
+    --c2-bg: #fdf0e3; --c2-bar: #F28C28;
+    --c3-bg: #eaf5ea; --c3-bar: #3f8f55;
+    --c5-bg: #efedf8; --c5-bar: #6a5fb0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Calibri, Carlito, "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    font-size: 18px; line-height: 1.5;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { border-bottom: 3px solid var(--petrol); margin-bottom: 20px; padding-bottom: 8px; }
+  .kicker { color: var(--orange); font-weight: 700; font-size: 14px; letter-spacing: .03em; }
+  h1 { color: var(--petrol); font-size: 28px; margin: 2px 0 0; line-height: 1.2; }
+  .meta { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  details {
+    border-radius: 12px; margin: 0 0 14px; overflow: hidden;
+    border-left: 8px solid var(--bar); background: var(--card);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    scroll-margin-top: 16px;
+  }
+  .k1 { --card: var(--c1-bg); --bar: var(--c1-bar); }
+  .k2 { --card: var(--c2-bg); --bar: var(--c2-bar); }
+  .k3, .k4 { --card: var(--c3-bg); --bar: var(--c3-bar); }
+  .k5 { --card: var(--c5-bg); --bar: var(--c5-bar); }
+
+  summary {
+    list-style: none; cursor: pointer; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    font-weight: 700; font-size: 19px; color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  summary::-webkit-details-marker { display: none; }
+  .num {
+    flex: 0 0 36px; height: 36px; border-radius: 50%;
+    background: var(--bar); color: #fff; display: grid; place-items: center;
+    font-size: 18px;
+  }
+  .title { flex: 1; }
+  .title small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; letter-spacing: .02em; }
+  .chev { flex: 0 0 auto; width: 12px; height: 12px; border-right: 3px solid var(--bar); border-bottom: 3px solid var(--bar);
+    transform: rotate(45deg); transition: transform .2s; margin-right: 6px; }
+  details[open] .chev { transform: rotate(-135deg); }
+  summary:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+
+  .body { padding: 0 20px 18px 68px; }
+  .body p { margin: 0 0 10px; }
+  .formula {
+    display: inline-block; background: #fff; border-radius: 8px; padding: 6px 14px;
+    font-size: 20px; font-weight: 700; color: var(--petrol); margin: 2px 0 10px;
+  }
+  .tip { border-top: 1px dashed rgba(0,0,0,.18); padding-top: 10px; margin-top: 6px; }
+  .tip b { color: var(--bar); }
+
+  @media (max-width: 480px) {
+    .body { padding-left: 20px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">AB 6 · Leistung · Klasse 10b</div>
+    <h1>Hilfekarten: Wer hat hier mehr geleistet?</h1>
+    <div class="meta">Tippe auf eine Karte, um sie aufzuklappen.</div>
+  </header>
+
+  <details class="k1" id="karte1">
+    <summary><span class="num">1</span><span class="title"><small>Hilfekarte 1</small>Potentielle Energie berechnen</span><span class="chev"></span></summary>
+    <div class="body">
+      <p>Die potentielle Energie oder Lageenergie berechnet sich über</p>
+      <div class="formula">E<sub>pot</sub> = m · g · h</div>
+      <p>mit dem Ortsfaktor g = 9,81 m/s².</p>
+    </div>
+  </details>
+
+  <details class="k2" id="karte2">
+    <summary><span class="num">2</span><span class="title"><small>Hilfekarte 2</small>Aussagekraft der Energiewerte</span><span class="chev"></span></summary>
+    <div class="body">
+      <p>Warum können wir nur anhand der berechneten Energie nicht sagen, wer mehr geleistet hat?</p>
+    </div>
+  </details>
+
+  <details class="k3" id="karte3">
+    <summary><span class="num">3</span><span class="title"><small>Hilfekarte 3</small>Formel aufstellen (#1)</span><span class="chev"></span></summary>
+    <div class="body">
+      <p>Um eine Geschwindigkeit zu berechnen, betrachtet man nicht allein die zurückgelegte Strecke, sondern die <b>Strecke <i>pro Zeit</i></b>.</p>
+      <p>Ganz ähnlich verhält es sich mit der Leistung: Um diese zu berechnen, betrachtet man nicht allein …, sondern …</p>
+    </div>
+  </details>
+
+  <details class="k4" id="karte4">
+    <summary><span class="num">4</span><span class="title"><small>Hilfekarte 4</small>Formel aufstellen (#2)</span><span class="chev"></span></summary>
+    <div class="body">
+      <p>Leistung entspricht der umgesetzten Energie in einem bestimmten Zeitraum, also umgesetzter <b>Energie pro Zeit</b>. Als Formel bedeutet das</p>
+      <div class="formula">P = …</div>
+    </div>
+  </details>
+
+  <details class="k5" id="karte5">
+    <summary><span class="num">5</span><span class="title"><small>Hilfekarte 5</small>Tipp zum Berechnen</span><span class="chev"></span></summary>
+    <div class="body">
+      <p>Stelle die Formel für die Leistung jeweils nach der gesuchten Größe um.</p>
+      <p class="tip"><b>Tipp für Aufgabe c):</b> Eine andere Einheit der Energie ist die Kilowattstunde (kWh).</p>
+    </div>
+  </details>
+</div>
+
+<script>
+  // Link vom Arbeitsblatt (…#karte3) öffnet direkt die passende Karte
+  function openFromHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === "DETAILS") {
+      el.open = true;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+  window.addEventListener("hashchange", openFromHash);
+  openFromHash();
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watt-Leiter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: freundlich-klar, Schulwerkzeug, nichts Überflüssiges
+   IDEA: ein Messlineal / Zahlenstrahl an der Tafel, an den man Karten pinnt
+   PICTURE: der Zahlenstrahl selbst mit Karten auf Stielen
+   COLOUR and TYPE: Petrol als Grundfarbe, Orange für die Läufer (Fixpunkte); Atkinson Hyperlegible
+   LAYOUT: schmaler Kopf, darunter Werkzeugleiste, Zahlenstrahl, Kartenspeicher */
+:root{color-scheme:light dark;
+--bg:light-dark(#f3f6f6,#0d191c);--card:light-dark(#fff,#15262a);--ink:light-dark(#13272c,#e5eeef);
+--muted:light-dark(#566a6f,#9fb2b6);--line:light-dark(#cbd8da,#2c4348);--petrol:light-dark(#0f6170,#46a8b8);
+--head:light-dark(#0f6170,#0b3c46);--orange:#e8832a;--soft:light-dark(#e6eff0,#1c3136)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif;overflow-x:clip}
+header{background:var(--head);color:#fff;padding:18px max(4vw,16px) 16px;display:flex;flex-wrap:wrap;gap:6px 24px;align-items:end;justify-content:space-between}
+header h1{margin:0;font-size:clamp(28px,4vw,40px);line-height:1.05}
+header p{margin:4px 0 0;opacity:.9;max-width:62ch}
+header .tag{font-size:14px;opacity:.85;white-space:nowrap}
+main{max-width:1240px;margin:0 auto;padding:16px max(3vw,12px) 40px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.grp{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-size:16px;min-height:44px;padding:0 16px;border-radius:10px;border:1.5px solid var(--petrol);background:var(--card);color:var(--petrol);cursor:pointer;font-weight:700}
+button.main{background:var(--petrol);color:var(--card)}
+button.sq{width:44px;padding:0;font-size:22px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+input[type=range]{width:min(260px,40vw);accent-color:var(--petrol);height:44px}
+.zl{font-weight:700;white-space:nowrap;min-width:13ch}
+.board{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px clamp(28px,4vw,48px) 4px;position:relative}
+#plot{position:relative;touch-action:none}
+#lanes{position:relative;height:120px}
+#stems{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#axis{position:relative;height:50px;border-top:3px solid var(--ink)}
+#axis::after{content:"";position:absolute;right:-14px;top:-9px;border:7.5px solid transparent;border-left:12px solid var(--ink)}
+.tk{position:absolute;top:-3px;width:2px;height:10px;background:var(--ink);transform:translateX(-1px)}
+.tl{position:absolute;top:12px;transform:translateX(-50%);font-size:13px;color:var(--muted);white-space:nowrap}
+.unit{position:absolute;right:-12px;top:30px;font-size:13px;font-weight:700}
+#guide{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--orange);display:none;pointer-events:none}
+#guide span{position:absolute;top:-6px;left:6px;background:var(--orange);color:#fff;font-weight:700;font-size:14px;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.chip{width:148px;padding:6px 10px;border-radius:10px;background:var(--soft);border:2px solid var(--petrol);color:var(--ink);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;line-height:1.2;font-size:14px}
+.chip b{display:block;font-size:14px}
+.chip small{display:block;font-size:13px;color:var(--muted)}
+.chip small:empty{display:none}
+#lanes .chip{position:absolute;box-shadow:0 2px 6px #0002}
+.chip.lift{opacity:.25}
+.chip.ghost{position:fixed;z-index:50;pointer-events:none;box-shadow:0 10px 24px #0004;transform:rotate(-2deg)}
+.chip.run{background:var(--orange);border-color:var(--orange);color:#fff;cursor:default}
+.chip.run small{color:#fff}
+.chip.off{border-style:dashed;opacity:.8}
+.chip.sol{border-style:dashed}
+.s3{background:#1f8a4c!important;border-color:#1f8a4c!important;color:#fff!important}
+.s2{background:#8fd19b!important;border-color:#3e9b52!important;color:#10301a!important}
+.s1{background:#f6c453!important;border-color:#d39a12!important;color:#3a2a00!important}
+.s0{background:#d64541!important;border-color:#d64541!important;color:#fff!important}
+.s3 small,.s0 small{color:#fff!important}.s2 small,.s1 small{color:inherit!important;opacity:.8}
+.anim #lanes .chip{transition:left .6s ease,bottom .6s ease}
+@media (prefers-reduced-motion:reduce){.anim #lanes .chip{transition:none}}
+.hint{font-size:14px;color:var(--muted);margin:8px 2px 18px}
+h2{font-size:18px;margin:0 0 8px}
+.trayw{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:14px}
+#tray{display:flex;flex-wrap:wrap;gap:10px;min-height:52px}
+#empty{color:var(--muted);margin:6px 0}
+#result{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:15px}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block}
+#info{margin-top:14px;background:var(--soft);border-left:5px solid var(--petrol);border-radius:8px;padding:12px 16px;display:none;max-width:70ch}
+.modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;z-index:100;padding:16px}
+.modal form{background:var(--card);border-radius:18px;padding:24px;max-width:460px;width:100%}
+.modal h2{font-size:24px;margin-bottom:6px}
+.modal p{margin:0 0 14px;color:var(--muted)}
+.modal label{display:flex;align-items:center;gap:10px;margin:10px 0;font-weight:700}
+.modal label span{flex:1}
+.modal input{font:inherit;font-size:16px;width:130px;min-height:44px;padding:0 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);text-align:right}
+.modal .unitw{width:2ch;color:var(--muted)}
+.modal .grp{margin-top:18px}
+.err{color:#d64541;font-size:14px;min-height:20px;margin:0}
+@media(max-width:600px){.chip{width:124px;padding:5px 8px}.board{padding-inline:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Watt-Leiter</h1>
+    <p>Wie groß ist die Leistung? Zieht jede Karte an die passende Stelle des Zahlenstrahls.</p>
+  </div>
+  <div class="tag">Physik · Energie · Scü · 10b</div>
+</header>
+<main>
+  <div class="bar">
+    <div class="grp" aria-label="Zoom">
+      <button class="sq" id="zin" aria-label="Hineinzoomen">+</button>
+      <input type="range" id="zoom" min="1" max="9.3" step="0.01" aria-label="Skala">
+      <button class="sq" id="zout" aria-label="Herauszoomen">−</button>
+      <span class="zl" id="zlabel"></span>
+    </div>
+    <div class="grp">
+      <button class="main" id="check">Überprüfen</button>
+      <button id="sol">Lösung zeigen</button>
+      <button id="reset">Neu starten</button>
+      <button id="runbtn">Läufer-Werte</button>
+    </div>
+  </div>
+  <div class="board" id="board">
+    <div id="plot">
+      <div id="lanes"><svg id="stems"></svg></div>
+      <div id="axis"></div>
+      <div id="guide"><span></span></div>
+    </div>
+  </div>
+  <p class="hint">Tipp: Der Zahlenstrahl ist <b>linear</b>. Zoomt hinein (Regler, + / − oder Zwei-Finger-Geste), um kleine Leistungen genau zu platzieren. Karten lassen sich jederzeit verschieben oder zurück in den Speicher ziehen.</p>
+  <section class="trayw" id="trayw">
+    <h2>Kartenspeicher</h2>
+    <div id="tray"></div>
+    <p id="empty" hidden>Alle Karten sind eingeordnet – jetzt überprüfen!</p>
+  </section>
+  <div id="result"></div>
+  <div id="info"></div>
+</main>
+
+<div class="modal" id="modal">
+  <form id="start">
+    <h2>Eure Läufer</h2>
+    <p>Tragt die Leistungen eurer beiden Läufer aus dem Treppenlauf ein. Sie erscheinen als feste orange Punkte auf dem Zahlenstrahl.</p>
+    <label><span>Läufer 1</span><input id="r1" inputmode="decimal" autocomplete="off" placeholder="z. B. 180"><span class="unitw">W</span></label>
+    <label><span>Läufer 2</span><input id="r2" inputmode="decimal" autocomplete="off" placeholder="z. B. 520"><span class="unitw">W</span></label>
+    <p class="err" id="err"></p>
+    <div class="grp">
+      <button class="main" type="submit">Los geht’s</button>
+      <button type="button" id="skip">Ohne Läufer starten</button>
+    </div>
+  </form>
+</div>
+
+<script>
+{
+const DATA=[
+ ['herz','Herz',1.5,'Pumpleistung des Herzens in Ruhe: Es befördert etwa 5 Liter Blut pro Minute.'],
+ ['led','LED-Lampe',8,'Leuchtet so hell wie eine alte 60-W-Glühbirne.'],
+ ['hirn','Gehirn',20,'Etwa ein Fünftel des Grundumsatzes – Denken kostet Energie!'],
+ ['ruhe','Mensch in Ruhe',100,'Grundumsatz: ca. 8 600 kJ pro Tag, das sind rund um die Uhr etwa 100 W.'],
+ ['ebike','E-Bike-Motor',250,'Bei Pedelecs sind in Deutschland höchstens 250 W Dauerleistung erlaubt.'],
+ ['rad','Radprofi (1 h)',400,'Tour-de-France-Profis halten etwa 400 W eine ganze Stunde lang durch.'],
+ ['pferd','Pferd (Dauer)',750,'Daher kommt die alte Einheit: 1 PS ≈ 735 W.'],
+ ['foehn','Föhn',1800,'Fast die gesamte Leistung wird in Wärme umgewandelt.'],
+ ['bolt','Usain Bolt (Start)',2500,'Nur für Sekundenbruchteile beim Start – danach sinkt die Leistung schnell.'],
+ ['solar','Solaranlage Dach',10000,'Bei voller Sonne. Über das Jahr gemittelt liefert sie deutlich weniger.'],
+ ['auto','Auto (Vollgas)',100000,'Ein Mittelklasseauto mit etwa 136 PS.'],
+ ['f1','Formel-1-Auto',750000,'Rund 1000 PS aus Verbrennungs- und Elektromotor zusammen.'],
+ ['wind','Windrad',4000000,'Ein modernes Windrad an Land bei kräftigem Wind.'],
+ ['schiff','Containerschiff',60000000,'Der Hauptmotor eines Riesenfrachters ist so groß wie ein Haus.'],
+ ['kw','Großkraftwerk',1e9,'Genug für über 2 Millionen Haushalte.']
+];
+const $=id=>document.getElementById(id);
+const lanes=$('lanes'),stems=$('stems'),axis=$('axis'),tray=$('tray'),plot=$('plot'),guide=$('guide'),board=$('board');
+let items=DATA.map(([id,n,v,d])=>({id,n,v,d,placed:null,status:null}));
+let runners=[],ex=4,solution=false,checked=false,drag=null;
+const chips=new Map();
+
+const fmt=(v,sig=2)=>{if(!v)return '0';const u=v>=1e9?[1e9,'GW']:v>=1e6?[1e6,'MW']:v>=1e3?[1e3,'kW']:[1,'W'];
+ return (v/u[0]).toLocaleString('de-DE',{maximumSignificantDigits:sig})+' '+u[1]};
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function makeChip(it,run){
+ const el=document.createElement('div');el.className='chip'+(run?' run':'');
+ el.innerHTML='<b></b><small></small>';el.querySelector('b').textContent=it.n;
+ if(!run){el.tabIndex=0;el.addEventListener('pointerdown',e=>down(e,it));el.addEventListener('pointermove',move);
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',cancel)}
+ return el;
+}
+function fillTray(){shuffle(items.slice()).forEach(it=>{if(!chips.has(it.id))chips.set(it.id,makeChip(it));tray.appendChild(chips.get(it.id))})}
+
+function render(){
+ const W=lanes.clientWidth,max=10**ex;
+ $('zlabel').textContent='Skala: 0 bis '+fmt(max,3);$('zoom').value=ex;
+ const list=[];
+ items.forEach(it=>{
+  const el=chips.get(it.id),val=solution?it.v:it.placed;
+  el.classList.remove('s0','s1','s2','s3');if(it.status!=null)el.classList.add('s'+it.status);
+  el.classList.toggle('sol',solution);
+  if(val==null){if(el.parentNode!==tray){tray.appendChild(el);el.style.left=el.style.bottom=''}el.querySelector('small').textContent='';el.classList.remove('off');return}
+  if(el.parentNode!==lanes)lanes.appendChild(el);
+  el.querySelector('small').textContent=solution?'Lösung: '+fmt(it.v):'≈ '+fmt(it.placed);
+  list.push({el,val});
+ });
+ runners.forEach(r=>{if(r.el.parentNode!==lanes)lanes.appendChild(r.el);list.push({el:r.el,val:r.v})});
+ $('empty').hidden=tray.children.length>0||solution;
+ // Lanes: Karten nach Position verteilen, bei Gedränge nach rechts versetzen
+ list.forEach(o=>{o.x=Math.min(o.val/max,1)*W;o.off=o.val>max;o.w=o.el.offsetWidth;o.h=o.el.offsetHeight;o.el.classList.toggle('off',o.off)});
+ list.sort((a,b)=>a.x-b.x);
+ const cap=W<520?4:5,gap=6,ends=[];let laneH=0;
+ list.forEach(o=>{laneH=Math.max(laneH,o.h+8);
+  const want=clamp(o.x-o.w/2,0,Math.max(0,W-o.w));let l=ends.findIndex(e=>e+gap<=want);
+  if(l<0&&ends.length<cap){l=ends.length;ends.push(-1e9)}
+  if(l<0){l=ends.indexOf(Math.min(...ends));o.left=Math.min(ends[l]+gap,W-o.w)}else o.left=want;
+  ends[l]=o.left+o.w;o.lane=l});
+ const nl=Math.max(ends.length,2),H=22+nl*laneH;lanes.style.height=H+'px';
+ let s='';
+ list.forEach(o=>{const b=22+o.lane*laneH;o.el.style.left=o.left+'px';o.el.style.bottom=b+'px';
+  const col=o.el.classList.contains('run')?'#e8832a':'var(--petrol)';
+  s+=`<line x1="${o.left+o.w/2}" y1="${H-b}" x2="${o.x}" y2="${H}" stroke="${col}" stroke-width="2"${o.off?' stroke-dasharray="4 4"':''}/><circle cx="${o.x}" cy="${H}" r="5" fill="${col}"/>`});
+ stems.innerHTML=s;
+ // Achse
+ const n=Math.max(3,Math.floor(W/110)),raw=max/n,mag=10**Math.floor(Math.log10(raw)),f=raw/mag;
+ const step=(f<1.5?1:f<3.5?2:f<7.5?5:10)*mag;let a='';
+ for(let i=0;i*step<=max*1.0001;i++){const x=i*step/max*W;a+=`<div class="tk" style="left:${x}px"></div><div class="tl" style="left:${x}px">${fmt(i*step,3)}</div>`}
+ axis.innerHTML=a+'<div class="unit">P</div>';
+}
+let raf=0;const setZoom=v=>{ex=clamp(v,1,9.3);if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})};
+
+// Ziehen der Karten
+const valueAt=cx=>{const r=lanes.getBoundingClientRect();return Math.max(clamp((cx-r.left)/r.width,0,1),0.002)*10**ex};
+const inRect=(e,el,p=0)=>{const r=el.getBoundingClientRect();return e.clientX>=r.left-p&&e.clientX<=r.right+p&&e.clientY>=r.top-p&&e.clientY<=r.bottom+p};
+function down(e,it){if(e.button>0)return;e.stopPropagation();e.preventDefault();const el=chips.get(it.id),r=el.getBoundingClientRect();
+ drag={it,el,sx:e.clientX,sy:e.clientY,ox:e.clientX-r.left,oy:e.clientY-r.top,moved:false,g:null};el.setPointerCapture(e.pointerId)}
+function move(e){if(!drag)return;const d=drag;
+ if(!d.moved){if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<5||solution)return;d.moved=true;
+  d.g=d.el.cloneNode(true);d.g.className='chip ghost';d.g.style.width=d.el.offsetWidth+'px';document.body.appendChild(d.g);d.el.classList.add('lift')}
+ d.g.style.left=(e.clientX-d.ox)+'px';d.g.style.top=(e.clientY-d.oy)+'px';
+ if(inRect(e,plot,30)){const r=plot.getBoundingClientRect();guide.style.display='block';
+  guide.style.left=clamp(e.clientX-r.left,0,r.width)+'px';guide.firstChild.textContent='≈ '+fmt(valueAt(e.clientX))}
+ else guide.style.display='none'}
+function end(){const d=drag;drag=null;if(d.g)d.g.remove();d.el.classList.remove('lift');guide.style.display='none';return d}
+function up(e){if(!drag)return;const d=end();
+ if(!d.moved){if(solution)showInfo(d.it);return}
+ if(inRect(e,plot,30)){d.it.placed=valueAt(e.clientX);d.it.status=null}
+ else if(inRect(e,$('trayw'))){d.it.placed=null;d.it.status=null}
+ if(checked)$('result').innerHTML='<span class="pill">Etwas verschoben – zum Bewerten erneut überprüfen.</span>';
+ render()}
+function cancel(){if(drag){end();render()}}
+
+// Zoom per Mausrad und Zwei-Finger-Geste
+plot.addEventListener('wheel',e=>{e.preventDefault();setZoom(ex+e.deltaY*0.0015)},{passive:false});
+const pts=new Map();let lastD=0;
+plot.addEventListener('pointerdown',e=>{if(e.target.closest('.chip'))return;pts.set(e.pointerId,[e.clientX,e.clientY]);plot.setPointerCapture(e.pointerId)});
+plot.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+ if(pts.size===2){const[[a,b],[c,d]]=[...pts.values()],dist=Math.hypot(a-c,b-d);if(lastD)setZoom(ex+Math.log10(lastD/dist));lastD=dist}});
+const pend=e=>{pts.delete(e.pointerId);lastD=0};
+plot.addEventListener('pointerup',pend);plot.addEventListener('pointercancel',pend);
+$('zoom').addEventListener('input',e=>setZoom(+e.target.value));
+$('zin').onclick=()=>setZoom(ex-1);$('zout').onclick=()=>setZoom(ex+1);
+
+// Überprüfen, Lösung, Neustart
+const LV=[['#1f8a4c','Volltreffer (höchstens Faktor 2 daneben)'],['#8fd19b','Größenordnung passt (bis Faktor 5)'],['#f6c453','knapp (bis Faktor 10)'],['#d64541','daneben (mehr als Faktor 10)']];
+$('check').onclick=()=>{checked=true;const c=[0,0,0,0];let open=0;
+ items.forEach(it=>{if(it.placed==null){it.status=null;open++;return}const r=Math.max(it.placed/it.v,it.v/it.placed);
+  it.status=r<=2?3:r<=5?2:r<=10?1:0;c[3-it.status]++});
+ $('result').innerHTML=LV.map((l,i)=>`<span class="pill"><span class="dot" style="background:${l[0]}"></span><b>${c[i]}</b> ${l[1]}</span>`).join('')+
+  (open?`<span class="pill">· ${open} Karte${open>1?'n':''} noch im Speicher</span>`:'');
+ render()};
+$('sol').onclick=()=>{solution=!solution;$('sol').textContent=solution?'Eigene Einordnung':'Lösung zeigen';
+ $('info').style.display=solution?'block':'none';$('info').innerHTML='Tippt auf eine Karte, um mehr darüber zu erfahren.';
+ board.classList.add('anim');setTimeout(()=>board.classList.remove('anim'),700);render()};
+function showInfo(it){const i=$('info');i.style.display='block';
+ let t=`<b>${it.n}</b>: ca. ${fmt(it.v)}<br>${it.d}`;
+ if(it.placed!=null){const r=Math.max(it.placed/it.v,it.v/it.placed);t+=`<br><small>Eure Einordnung: ${fmt(it.placed)} (Faktor ${r.toLocaleString('de-DE',{maximumFractionDigits:1})} daneben)</small>`}
+ i.innerHTML=t}
+$('reset').onclick=()=>{items.forEach(it=>{it.placed=null;it.status=null});checked=false;solution=false;
+ $('sol').textContent='Lösung zeigen';$('result').innerHTML='';$('info').style.display='none';fillTray();render()};
+
+// Läufer-Eingabe
+const modal=$('modal');
+function setRunners(vals){runners.forEach(r=>r.el.remove());
+ runners=vals.map((v,i)=>({n:'Läufer '+(i+1),v})).filter(r=>r.v>0);
+ runners.forEach(r=>{r.el=makeChip(r,true);r.el.querySelector('small').textContent=fmt(r.v,3)});
+ modal.style.display='none';render()}
+const parse=s=>{s=s.trim().replace(/\s/g,'').replace(',','.');return s===''?0:parseFloat(s)};
+$('start').addEventListener('submit',e=>{e.preventDefault();const a=parse($('r1').value),b=parse($('r2').value);
+ if([a,b].some(x=>isNaN(x)||x<0)||(!a&&!b)){$('err').textContent='Bitte zwei positive Zahlen (in Watt) eingeben.';return}
+ if(Math.max(a,b)>5000){$('err').textContent='Über 5 000 W? Bitte die Werte noch einmal prüfen.';return}
+ $('err').textContent='';setRunners([a,b])});
+$('skip').onclick=()=>setRunners([]);
+$('runbtn').onclick=()=>{modal.style.display='grid';$('r1').focus()};
+
+let lastW=0;const ro=new ResizeObserver(()=>{if(lanes.clientWidth!==lastW){lastW=lanes.clientWidth;render()}});
+ro.observe(board);
+fillTray();render();$('r1').focus();
+}
+</script>
+</body>
+</html>
